@@ -125,7 +125,7 @@ h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
 .hidden-radio:checked + .radio-btn {
     background: var(--tg-theme-button-color, #ffffff);
     color: var(--tg-theme-button-text-color, #000000);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 
