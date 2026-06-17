@@ -99,16 +99,26 @@ function deleteEvent() {
 }
 
 // 6. Нативный выбор даты (Telegram DatePicker)
+// Нативный выбор даты (самое надёжное решение)
 function pickDate() {
-    tg.showDatePicker({ title: 'Выберите дату' }, (date) => {
-        if (date) {
-            const [y, m, d] = date.split('-');
+    const dateInput = document.getElementById('real-date');
+    
+    // Открываем нативный picker
+    dateInput.showPicker ? dateInput.showPicker() : dateInput.focus();
+    
+    // Обработчик изменения (на случай, если showPicker не сработает)
+    const handler = function() {
+        if (this.value) {
+            const [y, m, d] = this.value.split('-');
             const formattedDate = `${d}.${m}.${y}`;
-            // Четкое обращение по ID
+            
             document.getElementById('date-btn').innerText = '📅 ' + formattedDate;
-            document.getElementById('real-date').value = date;
+            // убираем обработчик после первого срабатывания
+            this.removeEventListener('change', handler);
         }
-    });
+    };
+    
+    dateInput.addEventListener('change', handler, { once: true });
 }
 
 // Обработка выбора времени
