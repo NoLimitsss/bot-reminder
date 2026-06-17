@@ -8,17 +8,32 @@ if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
 
 // Логика переключения экранов
 function showScreen(screenName) {
-    document.getElementById('main-screen').style.display = (screenName === 'main') ? 'block' : 'none';
-    document.getElementById('add-screen').style.display = (screenName === 'add') ? 'flex' : 'none';
-}
+    // Список всех экранов, которые у тебя есть в HTML
+    const screens = ['main', 'add', 'upcoming', 'all'];
 
+    screens.forEach(name => {
+        const el = document.getElementById(name + '-screen');
+        if (el) {
+            // Если имя совпадает с тем, что мы вызвали — показываем
+            if (name === screenName) {
+                // 'add' используем flex, остальные block
+                el.style.display = (screenName === 'add') ? 'flex' : 'block';
+            } else {
+                // Все остальные скрываем
+                el.style.display = 'none';
+            }
+        } else {
+            console.warn("Экран не найден: " + name + "-screen");
+        }
+    });
+}
 // Заставка: исчезает через 1 секунду после полной загрузки
 window.addEventListener('load', () => {
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         splash.style.opacity = '0';
         splash.style.visibility = 'hidden';
-    }, 1500);
+    }, 2000);
 });
 // Обработка выбора даты и времени
 document.getElementById('real-date').addEventListener('change', function() {

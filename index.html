@@ -15,8 +15,8 @@
         <h1>Здравствуйте, <span id="username">гость</span>!</h1>
         <div class="grid">
             <button class="menu-item" onclick="showScreen('add')">+ Добавить событие</button>
-            <button class="menu-item">📅 Ближайшие 3 события</button>
-            <button class="menu-item">📂 Список событий</button>
+            <button class="menu-item" onclick="showScreen('upcoming')">📅 Ближайшие 3 события</button>
+            <button class="menu-item" onclick="showScreen('all')">📂 Список событий</button>
             <button class="menu-item">⚙️ Редактировать</button>
         </div>
     </div>
@@ -56,6 +56,18 @@
         <button class="save-btn" onclick="alert('Сохранено!')">Сохранить</button>
     </div>
 
+<!-- Блоки ближайших событий и все события !-->
+    <div id="upcoming-screen" class="screen" style="display: none;">
+     <button class="back-btn" onclick="showScreen('main')">← Назад</button>
+     <h2>📅 Ближайшие события</h2>
+     <div class="empty-state">Пока пусто...</div>
+    </div>
+
+    <div id="all-screen" class="screen" style="display: none;">
+      <button class="back-btn" onclick="showScreen('main')">← Назад</button>
+      <h2>📂 Все события</h2>
+      <div class="empty-state">Список событий пуст</div>
+    </div>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="script.js"></script>
 </body>

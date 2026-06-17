@@ -96,6 +96,8 @@ h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
 }
 .menu-item:active { transform: scale(0.95); }
 
+
+
 /* Стили для выбора типа события. Переключатель одноразовое/многоразовое */
 .type-selector {
     display: flex;
@@ -123,5 +125,34 @@ h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
 .hidden-radio:checked + .radio-btn {
     background: var(--tg-theme-button-color, #ffffff);
     color: var(--tg-theme-button-text-color, #000000);
-    box-shadow: 0 0px 15px 3px rgb(255, 0, 0);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+
+
+
+/* Контейнеры для списка событий и ближайших событий */
+.event-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+/* Стиль карточки события (когда они появятся) */
+.event-card {
+    background: var(--tg-theme-secondary-bg-color);
+    padding: 16px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Стиль для пустого состояния */
+.empty-state {
+    text-align: center;
+    color: var(--tg-theme-hint-color);
+    padding: 40px;
+    font-style: italic;
 }
