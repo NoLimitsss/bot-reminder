@@ -18,7 +18,7 @@ window.addEventListener('load', () => {
         const splash = document.getElementById('splash-screen');
         splash.style.opacity = '0';
         splash.style.visibility = 'hidden';
-    }, 1000);
+    }, 3500);
 });
 // Обработка выбора даты и времени
 document.getElementById('real-date').addEventListener('change', function() {
