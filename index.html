@@ -12,7 +12,7 @@
         <div class="grid">
             <button class="menu-item" onclick="showScreen('add')">+ Добавить</button>
             <button class="menu-item">📅 Ближайшие</button>
-            <button class="menu-item">📂 Все дела</button>
+            <button class="menu-item">📂 Все события</button>
             <button class="menu-item">⚙️ Редактировать</button>
         </div>
     </div>
@@ -22,11 +22,17 @@
         <h1>Добавить событие</h1>
         
         <input type="text" placeholder="Название события" class="input-field">
-        <input type="date" class="input-field">
-        <input type="time" class="input-field">
+        
+        <div class="date-picker-wrapper">
+            <input type="datetime-local" id="real-date" class="hidden-input">
+            <div class="custom-date-btn" onclick="document.getElementById('real-date').showPicker()">
+                📅 Выбрать дату и время
+            </div>
+        </div>
+
         <textarea placeholder="Примечания" class="input-field" rows="3"></textarea>
         
-        <button class="save-btn">Сохранить</button>
+        <button class="save-btn" onclick="alert('Сохранено!')">Сохранить</button>
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
