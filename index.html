@@ -2,61 +2,21 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Настройка события</title>
-    <style>
-        /* CSS переменные от Telegram */
-        :root {
-            --bg-color: var(--tg-theme-bg-color);
-            --text-color: var(--tg-theme-text-color);
-            --button-color: var(--tg-theme-button-color);
-            --button-text-color: var(--tg-theme-button-text-color);
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .input-group {
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
-        input {
-            width: 100%;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #ccc;
-            font-size: 18px;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <title>Планировщик</title>
 </head>
 <body>
 
-    <div class="input-group">
-        <label>Выберите время:</label>
-        <input type="time" id="timePicker">
+    <h1>Здравствуйте, <span id="username">гость</span>!</h1>
+
+    <div class="grid">
+        <button class="menu-item" onclick="alert('Добавить')">+ Добавить</button>
+        <button class="menu-item" onclick="alert('Ближайшие')">📅 Ближайшие</button>
+        <button class="menu-item" onclick="alert('Все')">📂 Все дела</button>
+        <button class="menu-item" onclick="alert('Настройки')">⚙️ Редактировать</button>
     </div>
 
-    <button id="saveBtn" style="width: 100%; padding: 15px; background: var(--button-color); color: var(--button-text-color); border: none; border-radius: 12px;">
-        Сохранить
-    </button>
-
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand(); // Развернуть окно на весь экран
-
-        document.getElementById('saveBtn').onclick = () => {
-            let time = document.getElementById('timePicker').value;
-            tg.sendData(JSON.stringify({time: time})); // Шлем данные в Python
-        };
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
