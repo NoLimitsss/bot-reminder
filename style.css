@@ -65,6 +65,12 @@ h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
     padding-bottom: 50px;
 }
 
+#add-screen {
+    padding: 20px; /* Добавляем воздух по бокам */
+    box-sizing: border-box; /* Чтобы отступы не ломали ширину */
+}
+
+
 .input-field { 
     background: var(--tg-theme-secondary-bg-color); 
     border: 1px solid var(--tg-theme-hint-color); 
@@ -149,4 +155,16 @@ h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
     color: var(--tg-theme-hint-color);
     padding: 40px;
     font-style: italic;
+}
+
+
+/* Стили для модального окна в блоке "Все события" (если понадобится) */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px);
+    display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.modal-content {
+    background: var(--tg-theme-bg-color); width: 85%; padding: 20px;
+    border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
