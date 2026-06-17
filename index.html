@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="style.css">
     <title>Планировщик</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </head>
 <body>
 
@@ -28,11 +30,8 @@
         <input type="text" id="event-name" placeholder="Название события" class="input-field">
         
         <div class="date-picker-wrapper">
-            <label>Дата:</label>
-            <input type="date" id="real-date" class="hidden-input">
-            <div class="custom-date-btn" onclick="document.getElementById('real-date').showPicker()">
-                📅 Выбрать дату
-            </div>
+            <label>Дата события:</label>
+            <input type="text" id="date-input" class="input-field" placeholder="Нажмите для выбора даты..." readonly>
         </div>
 
         <div class="date-picker-wrapper" style="margin-top: 10px;">
