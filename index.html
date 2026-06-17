@@ -7,13 +7,26 @@
 </head>
 <body>
 
-    <h1>Здравствуйте, <span id="username">гость</span>!</h1>
+    <div id="main-screen">
+        <h1>Здравствуйте, <span id="username">гость</span>!</h1>
+        <div class="grid">
+            <button class="menu-item" onclick="showScreen('add')">+ Добавить</button>
+            <button class="menu-item">📅 Ближайшие</button>
+            <button class="menu-item">📂 Все дела</button>
+            <button class="menu-item">⚙️ Редактировать</button>
+        </div>
+    </div>
 
-    <div class="grid">
-        <button class="menu-item" onclick="alert('Добавить')">+ Добавить</button>
-        <button class="menu-item" onclick="alert('Ближайшие')">📅 Ближайшие</button>
-        <button class="menu-item" onclick="alert('Все')">📂 Все дела</button>
-        <button class="menu-item" onclick="alert('Настройки')">⚙️ Редактировать</button>
+    <div id="add-screen" class="screen" style="display: none;">
+        <button class="back-btn" onclick="showScreen('main')">← Назад</button>
+        <h1>Добавить событие</h1>
+        
+        <input type="text" placeholder="Название события" class="input-field">
+        <input type="date" class="input-field">
+        <input type="time" class="input-field">
+        <textarea placeholder="Примечания" class="input-field" rows="3"></textarea>
+        
+        <button class="save-btn">Сохранить</button>
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
