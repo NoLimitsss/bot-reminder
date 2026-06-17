@@ -1,38 +1,37 @@
 const tg = window.Telegram.WebApp;
 tg.ready();
 
-// 1. Инициализация имени
-if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+// Имя
+if (tg.initDataUnsafe?.user) {
     document.getElementById('username').innerText = tg.initDataUnsafe.user.first_name;
 }
 
-// 2. Переключение экранов
+// Экраны
 function showScreen(screenName) {
     document.getElementById('main-screen').style.display = (screenName === 'main') ? 'block' : 'none';
     document.getElementById('add-screen').style.display = (screenName === 'add') ? 'flex' : 'none';
 }
 
-// 3. Заставка
+// Загрузка
 window.addEventListener('load', () => {
-    // Ждем 2 секунды, чтобы анимация появления успела проиграться
+    // Ждем 2.6 секунды (чуть дольше, чем длится анимация 2.5с)
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
-        
-        // Добавляем класс для красивого исчезновения (можно просто менять opacity)
-        splash.style.opacity = '0';
-        
-        // Убираем из DOM после завершения анимации
-        setTimeout(() => { 
-            splash.style.display = 'none'; 
-        }, 800); 
-    }, 2000); 
+        if (splash) {
+            splash.style.opacity = '0';
+            // После плавного исчезновения убираем из потока
+            setTimeout(() => {
+                splash.style.display = 'none';
+            }, 800);
+        }
+    }, 2600); 
 });
 
-// 4. Инициализация календаря
+// Календарь
 document.addEventListener('DOMContentLoaded', () => {
     flatpickr("#date-input", {
         dateFormat: "d.m.Y",
-        static: true, 
+        static: true,
         locale: {
             firstDayOfWeek: 1,
             weekdays: { shorthand: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'] },

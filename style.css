@@ -1,11 +1,29 @@
-/* Основные настройки */
+:root {
+    --bg: #1c1c1e;
+    --text: #ffffff;
+    --secondary: #2c2c2e;
+    --accent: #3478f6;
+}
+
 body { 
-    background: linear-gradient(180deg, var(--tg-theme-bg-color) 0%, var(--tg-theme-secondary-bg-color) 100%);
-    color: var(--tg-theme-text-color); 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-    padding: 20px; 
-    margin: 0;
+    /* Используем переменные, если они есть, иначе — наши дефолтные */
+    background-color: var(--tg-theme-bg-color, var(--bg));
+    color: var(--tg-theme-text-color, var(--text));
+    font-family: -apple-system, sans-serif;
+    margin: 0; padding: 20px;
     min-height: 100vh;
+}
+
+/* Кнопка "Добавить событие" — добавим ей стили, чтобы она была видна */
+.menu-item { 
+    background: var(--tg-theme-secondary-bg-color, var(--secondary));
+    color: var(--tg-theme-text-color, var(--text));
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: 1px solid #444;
+    cursor: pointer;
+    display: inline-block;
+    font-weight: 600;
 }
 
 /* Заставка */
@@ -22,12 +40,21 @@ body {
     font-size: 28px;
     font-weight: 700;
     /* Анимация: плавно появляется и поднимается */
-    animation: fade-up 1.5s ease-out forwards;
+    animation: fade-up 2.5s ease-out forwards;
 }
 
 @keyframes fade-up {
     0% { opacity: 0; transform: translateY(20px); }
-    100% { opacity: 1; transform: translateY(0); }
+
+
+    30% { opacity: 1; transform: translateY(5px); }
+
+    50% { opacity: 1; transform: translateY(0px); }
+
+    70% { opacity: 1; transform: translateY(-5px); }
+
+
+    100% { opacity: 0; transform: translateY(-20px); }
 }
 
 /* Элементы формы */
