@@ -24,12 +24,20 @@
         <input type="text" placeholder="Название события" class="input-field">
         
         <div class="date-picker-wrapper">
-            <input type="datetime-local" id="real-date" class="hidden-input">
+            <label>Дата:</label>
+            <input type="date" id="real-date" class="hidden-input">
             <div class="custom-date-btn" onclick="document.getElementById('real-date').showPicker()">
-                📅 Выбрать дату и время
+                📅 Выбрать дату
             </div>
         </div>
 
+        <div class="date-picker-wrapper" style="margin-top: 10px;">
+            <label>Время:</label>
+            <input type="time" id="real-time" class="hidden-input">
+            <div class="custom-date-btn" onclick="document.getElementById('real-time').showPicker()">
+                ⏰ Выбрать время
+            </div>
+        </div>
         <textarea placeholder="Примечания" class="input-field" rows="3"></textarea>
         
         <button class="save-btn" onclick="alert('Сохранено!')">Сохранить</button>
