@@ -225,12 +225,22 @@ h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
 }
 
 /* Стили для кастомных кнопок выбора даты */
+.hidden-input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+}
+
 .custom-date-btn {
     cursor: pointer;
     user-select: none;
+    transition: all 0.2s;
 }
 
 .custom-date-btn:active {
-    opacity: 0.7;
-    transform: scale(0.98);
+    background: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    transform: scale(0.97);
 }

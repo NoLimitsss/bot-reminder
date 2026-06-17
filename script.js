@@ -98,27 +98,34 @@ function deleteEvent() {
     }
 }
 
-// 6. Нативный выбор даты (Telegram DatePicker)
-// Нативный выбор даты (самое надёжное решение)
+// Надёжный выбор даты для Telegram Mini App
 function pickDate() {
     const dateInput = document.getElementById('real-date');
-    
-    // Открываем нативный picker
-    dateInput.showPicker ? dateInput.showPicker() : dateInput.focus();
-    
-    // Обработчик изменения (на случай, если showPicker не сработает)
-    const handler = function() {
+    const dateBtn = document.getElementById('date-btn');
+
+    // Показываем нативный picker
+    if (dateInput.showPicker) {
+        dateInput.showPicker();
+    } else {
+        // Fallback для мобильных WebView Telegram
+        dateInput.focus();
+        dateInput.click();
+    }
+
+    // Обработчик изменения
+    const onDateChange = function() {
         if (this.value) {
-            const [y, m, d] = this.value.split('-');
-            const formattedDate = `${d}.${m}.${y}`;
+            const [year, month, day] = this.value.split('-');
+            const formatted = `${day}.${month}.${year}`;
             
-            document.getElementById('date-btn').innerText = '📅 ' + formattedDate;
-            // убираем обработчик после первого срабатывания
-            this.removeEventListener('change', handler);
+            dateBtn.innerText = `📅 ${formatted}`;
+            
+            // Удаляем обработчик после первого использования
+            this.removeEventListener('change', onDateChange);
         }
     };
-    
-    dateInput.addEventListener('change', handler, { once: true });
+
+    dateInput.addEventListener('change', onDateChange, { once: true });
 }
 
 // Обработка выбора времени
