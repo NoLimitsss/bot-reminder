@@ -8,25 +8,10 @@ if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
 
 // Логика переключения экранов
 function showScreen(screenName) {
-    // Список всех экранов, которые у тебя есть в HTML
-    const screens = ['main', 'add', 'upcoming', 'all'];
-
-    screens.forEach(name => {
-        const el = document.getElementById(name + '-screen');
-        if (el) {
-            // Если имя совпадает с тем, что мы вызвали — показываем
-            if (name === screenName) {
-                // 'add' используем flex, остальные block
-                el.style.display = (screenName === 'add') ? 'flex' : 'block';
-            } else {
-                // Все остальные скрываем
-                el.style.display = 'none';
-            }
-        } else {
-            console.warn("Экран не найден: " + name + "-screen");
-        }
-    });
+    document.getElementById('main-screen').style.display = (screenName === 'main') ? 'block' : 'none';
+    document.getElementById('add-screen').style.display = (screenName === 'add') ? 'flex' : 'none';
 }
+
 // Заставка: исчезает через 1 секунду после полной загрузки
 window.addEventListener('load', () => {
     setTimeout(() => {
@@ -49,3 +34,63 @@ document.getElementById('real-time').addEventListener('change', function() {
         btn.innerText = '⏰ ' + this.value;
     }
 });
+
+
+
+
+// --- 1. Функция отрисовки списка (добавь в конец файла) ---
+function renderEvents(listId, eventArray) {
+    const container = document.getElementById(listId);
+    if (!container) return;
+
+    container.innerHTML = ''; // Очищаем список перед отрисовкой
+
+    if (eventArray.length === 0) {
+        container.innerHTML = '<div class="empty-state">Список событий пуст</div>';
+        return;
+    }
+
+    eventArray.forEach(event => {
+        const card = document.createElement('div');
+        card.className = 'event-card';
+        card.innerHTML = `
+            <div>
+                <strong>${event.name}</strong><br>
+                <small>📅 ${event.date} | ⏰ ${event.time}</small>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+// --- 2. Генератор тестовых данных ---
+const testEvents = [];
+for (let i = 1; i <= 20; i++) {
+    testEvents.push({
+        name: `Событие #${i}`,
+        date: `20.06.2026`,
+        time: `${i}:00`
+    });
+}
+
+// --- 3. Обновляем твою функцию showScreen ---
+// Замени свою существующую функцию showScreen на эту (она учитывает рендер):
+function showScreen(screenName) {
+    const screens = ['main', 'add', 'upcoming', 'all'];
+
+    screens.forEach(name => {
+        const el = document.getElementById(name + '-screen');
+        if (el) {
+            if (name === screenName) {
+                el.style.display = (screenName === 'add') ? 'flex' : 'block';
+                
+                // При входе на экраны списка - запускаем рендер
+                if (screenName === 'all') renderEvents('all-list', testEvents);
+                if (screenName === 'upcoming') renderEvents('upcoming-list', testEvents.slice(0, 3));
+                
+            } else {
+                el.style.display = 'none';
+            }
+        }
+    });
+}

@@ -60,13 +60,13 @@
     <div id="upcoming-screen" class="screen" style="display: none;">
      <button class="back-btn" onclick="showScreen('main')">← Назад</button>
      <h2>📅 Ближайшие события</h2>
-     <div class="empty-state">Пока пусто...</div>
+     <div id="upcoming-list" class="event-container"></div> 
     </div>
 
     <div id="all-screen" class="screen" style="display: none;">
       <button class="back-btn" onclick="showScreen('main')">← Назад</button>
       <h2>📂 Все события</h2>
-      <div class="empty-state">Список событий пуст</div>
+      <div id="all-list" class="event-container"></div> 
     </div>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="script.js"></script>
