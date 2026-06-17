@@ -7,6 +7,10 @@
 </head>
 <body>
 
+    <div id="splash-screen">
+        <h1 class="splash-logo">МОЙ ПЛАНИРОВЩИК</h1>
+    </div>
+
     <div id="main-screen">
         <h1>Здравствуйте, <span id="username">гость</span>!</h1>
         <div class="grid">
@@ -21,7 +25,7 @@
         <button class="back-btn" onclick="showScreen('main')">← Назад</button>
         <h1>Добавить событие</h1>
         
-        <input type="text" placeholder="Название события" class="input-field">
+        <input type="text" id="event-name" placeholder="Название события" class="input-field">
         
         <div class="date-picker-wrapper">
             <label>Дата:</label>
@@ -38,7 +42,8 @@
                 ⏰ Выбрать время
             </div>
         </div>
-        <textarea placeholder="Примечания" class="input-field" rows="3"></textarea>
+
+        <textarea id="event-notes" placeholder="Примечания" class="input-field" rows="3"></textarea>
         
         <button class="save-btn" onclick="alert('Сохранено!')">Сохранить</button>
     </div>
