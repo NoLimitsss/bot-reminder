@@ -201,3 +201,25 @@ h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
     background: var(--tg-theme-bg-color); width: 85%; padding: 20px;
     border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
+/* Стили для кнопок редактировать и удалить под модальным окном */
+.edit-btn {
+    flex: 1;
+    background: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.delete-btn {
+    flex: 1;
+    background: transparent;
+    color: #ff3b30;
+    border: 1px solid #ff3b30;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
