@@ -4,7 +4,7 @@ tg.ready();
 // Глобальная переменная для текущего редактируемого события
 let currentEvent = null;
 
-// 1. Подставляем имя
+// 1. Подставляем имя пользователя
 if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
     document.getElementById('username').innerText = tg.initDataUnsafe.user.first_name;
 }
@@ -16,7 +16,6 @@ function showScreen(screenName) {
         const el = document.getElementById(name + '-screen');
         if (el) {
             el.style.display = (name === screenName) ? (screenName === 'add' ? 'flex' : 'block') : 'none';
-            // Рендер списков при переходе
             if (screenName === 'all') renderEvents('all-list', testEvents);
             if (screenName === 'upcoming') renderEvents('upcoming-list', testEvents.slice(0, 3));
         }
@@ -72,13 +71,23 @@ function closeModal() {
     document.getElementById('modal-overlay').style.display = 'none';
 }
 
+// Функция перехода в режим редактирования
 function editEvent() {
     if (!currentEvent) return;
     closeModal();
     showScreen('add');
+    
     document.getElementById('event-name').value = currentEvent.name;
     document.getElementById('event-notes').value = currentEvent.notes || '';
-    console.log("Редактирование:", currentEvent.name);
+    
+    // Преобразование даты
+    const [d, m, y] = currentEvent.date.split('.');
+    document.getElementById('real-date').value = `${y}-${m}-${d}`;
+    document.getElementById('real-time').value = currentEvent.time;
+    
+    // Обновляем текст кнопок через ID
+    document.getElementById('date-btn').innerText = '📅 ' + currentEvent.date;
+    document.getElementById('time-btn').innerText = '⏰ ' + currentEvent.time;
 }
 
 function deleteEvent() {
@@ -89,7 +98,40 @@ function deleteEvent() {
     }
 }
 
-// 6. Тестовые данные
+// 6. Нативный выбор даты (Telegram DatePicker)
+function pickDate() {
+    tg.showDatePicker({ title: 'Выберите дату' }, (date) => {
+        if (date) {
+            const [y, m, d] = date.split('-');
+            const formattedDate = `${d}.${m}.${y}`;
+            // Четкое обращение по ID
+            document.getElementById('date-btn').innerText = '📅 ' + formattedDate;
+            document.getElementById('real-date').value = date;
+        }
+    });
+}
+
+// Обработка выбора времени
+document.getElementById('real-time').addEventListener('change', function() {
+    if (this.value) {
+        // Четкое обращение по ID
+        document.getElementById('time-btn').innerText = '⏰ ' + this.value;
+    }
+});
+
+// 7. Обработка времени
+document.getElementById('real-time').addEventListener('change', function() {
+    if (this.value) {
+        document.getElementById('time-btn').innerText = '⏰ ' + this.value;
+    }
+});
+
+// Заглушка для сохранения
+function saveEvent() {
+    alert('Событие сохранено!');
+}
+
+// 8. Тестовые данные
 const testEvents = [];
 for (let i = 1; i <= 20; i++) {
     testEvents.push({
@@ -99,14 +141,3 @@ for (let i = 1; i <= 20; i++) {
         notes: `Детали события ${i}`
     });
 }
-
-// 7. Обработка даты/времени
-document.getElementById('real-date').addEventListener('change', function() {
-    const btn = document.querySelector('.custom-date-btn[onclick*="real-date"]');
-    if (this.value) btn.innerText = '📅 ' + this.value.split('-').reverse().join('.');
-});
-
-document.getElementById('real-time').addEventListener('change', function() {
-    const btn = document.querySelector('.custom-date-btn[onclick*="real-time"]');
-    if (this.value) btn.innerText = '⏰ ' + this.value;
-});

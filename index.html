@@ -46,7 +46,7 @@
         <div class="date-picker-wrapper">
             <label>Дата:</label>
             <input type="date" id="real-date" class="hidden-input">
-            <div class="custom-date-btn" onclick="document.getElementById('real-date').showPicker()">
+            <div id="date-btn" class="custom-date-btn" onclick="pickDate()">
                 📅 Выбрать дату
             </div>
         </div>
@@ -54,7 +54,7 @@
         <div class="date-picker-wrapper" style="margin-top: 10px;">
             <label>Время:</label>
             <input type="time" id="real-time" class="hidden-input">
-            <div class="custom-date-btn" onclick="document.getElementById('real-time').showPicker()">
+            <div id="time-btn" class="custom-date-btn" onclick="document.getElementById('real-time').showPicker()">
                 ⏰ Выбрать время
             </div>
         </div>
@@ -88,7 +88,7 @@
         <p><strong>Примечания:</strong> <span id="modal-notes"></span></p>
         
         <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button class="edit-btn" onclick="editEvent()">Редактировать</button>
+            <button class="edit-btn" onclick="editEvent()" >Редактировать</button>
             <button class="delete-btn" onclick="deleteEvent()">Удалить</button>
         </div>
     </div>
