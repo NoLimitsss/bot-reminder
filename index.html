@@ -8,15 +8,15 @@
 <body>
 
     <div id="splash-screen">
-        <h1 class="splash-logo">МОЙ ПЛАНИРОВЩИК</h1>
+        <h1 class="splash-logo">Мой планировщик</h1>
     </div>
 
     <div id="main-screen">
         <h1>Здравствуйте, <span id="username">гость</span>!</h1>
         <div class="grid">
-            <button class="menu-item" onclick="showScreen('add')">+ Добавить</button>
-            <button class="menu-item">📅 Ближайшие</button>
-            <button class="menu-item">📂 Все события</button>
+            <button class="menu-item" onclick="showScreen('add')">+ Добавить событие</button>
+            <button class="menu-item">📅 Ближайшие 3 события</button>
+            <button class="menu-item">📂 Список событий</button>
             <button class="menu-item">⚙️ Редактировать</button>
         </div>
     </div>
@@ -26,6 +26,14 @@
         <h1>Добавить событие</h1>
         
         <input type="text" id="event-name" placeholder="Название события" class="input-field">
+
+        <div class="type-selector" style="margin-top: 15px; margin-bottom: 15px;">
+            <input type="radio" id="type-single" name="event-type" value="single" class="hidden-radio">
+            <label for="type-single" class="radio-btn">Одноразовое</label>
+
+            <input type="radio" id="type-recurring" name="event-type" value="recurring" class="hidden-radio">
+            <label for="type-recurring" class="radio-btn">Повторяющееся</label>
+        </div>
         
         <div class="date-picker-wrapper">
             <label>Дата:</label>
@@ -44,7 +52,7 @@
         </div>
 
         <textarea id="event-notes" placeholder="Примечания" class="input-field" rows="3"></textarea>
-        
+
         <button class="save-btn" onclick="alert('Сохранено!')">Сохранить</button>
     </div>
 
