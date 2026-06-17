@@ -65,10 +65,21 @@ h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
     padding-bottom: 50px;
 }
 
+
+#main-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    height: 100vh;
+}
+
 #add-screen {
     padding: 2px; /* Добавляем воздух по бокам */
     box-sizing: border-box; /* Чтобы отступы не ломали ширину */
 }
+
+
 
 
 .input-field { 
@@ -88,13 +99,35 @@ h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
 .save-btn { background: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; }
 .back-btn { background: none; border: none; color: var(--tg-theme-link-color); text-align: left; padding: 5px; cursor: pointer; }
 
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-.menu-item { 
-    background: var(--tg-theme-secondary-bg-color, var(--secondary)); 
-    padding: 20px 10px; border-radius: 20px; border: none; 
-    color: var(--tg-theme-text-color); font-weight: 600; cursor: pointer;
+.grid { 
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Две колонки */
+    gap: 15px;
+    width: 100%;
+    max-width: 400px; /* Чтобы кнопки не растягивались на огромных экранах */
+    margin-top: 20px; 
 }
-.menu-item:active { transform: scale(0.95); }
+.menu-item { 
+    background: var(--tg-theme-secondary-bg-color); 
+    padding: 30px 15px; /* Увеличили вертикальный отступ */
+    border-radius: 24px; /* Более скругленные углы */
+    border: none; 
+    color: var(--tg-theme-text-color); 
+    font-weight: 700; 
+    font-size: 15px;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.menu-item:active { 
+    transform: scale(0.95); 
+    background: var(--tg-theme-hint-color);
+}
 
 
 
