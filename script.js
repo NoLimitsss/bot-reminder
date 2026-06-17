@@ -1,7 +1,7 @@
 const tg = window.Telegram.WebApp;
 tg.ready();
+tg.expand(); // Разворачивает приложение на всю высоту
 
-// Глобальная переменная для текущего редактируемого события
 let currentEvent = null;
 
 // 1. Подставляем имя пользователя
@@ -9,13 +9,15 @@ if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
     document.getElementById('username').innerText = tg.initDataUnsafe.user.first_name;
 }
 
-// 2. Логика переключения экранов
+// 2. Переключение экранов
 function showScreen(screenName) {
     const screens = ['main', 'add', 'upcoming', 'all'];
     screens.forEach(name => {
         const el = document.getElementById(name + '-screen');
         if (el) {
-            el.style.display = (name === screenName) ? (screenName === 'add' ? 'flex' : 'block') : 'none';
+            el.style.display = (name === screenName) ? 
+                (screenName === 'add' ? 'flex' : 'block') : 'none';
+            
             if (screenName === 'all') renderEvents('all-list', testEvents);
             if (screenName === 'upcoming') renderEvents('upcoming-list', testEvents.slice(0, 3));
         }
@@ -27,11 +29,11 @@ window.addEventListener('load', () => {
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         splash.style.opacity = '0';
-        splash.style.visibility = 'hidden';
-    }, 2000);
+        setTimeout(() => splash.style.visibility = 'hidden', 500);
+    },2000);
 });
 
-// 4. Логика списка
+// 4. Рендер событий
 function renderEvents(listId, eventArray) {
     const container = document.getElementById(listId);
     if (!container) return;
@@ -57,7 +59,7 @@ function renderEvents(listId, eventArray) {
     });
 }
 
-// 5. Модальное окно и действия
+// 5. Модальное окно
 function openDetails(event) {
     currentEvent = event;
     document.getElementById('modal-title').innerText = event.name;
@@ -71,7 +73,7 @@ function closeModal() {
     document.getElementById('modal-overlay').style.display = 'none';
 }
 
-// Функция перехода в режим редактирования
+// Редактирование события
 function editEvent() {
     if (!currentEvent) return;
     closeModal();
@@ -80,81 +82,81 @@ function editEvent() {
     document.getElementById('event-name').value = currentEvent.name;
     document.getElementById('event-notes').value = currentEvent.notes || '';
     
-    // Преобразование даты
     const [d, m, y] = currentEvent.date.split('.');
     document.getElementById('real-date').value = `${y}-${m}-${d}`;
-    document.getElementById('real-time').value = currentEvent.time;
+    document.getElementById('real-time').value = currentEvent.time || '';
     
-    // Обновляем текст кнопок через ID
     document.getElementById('date-btn').innerText = '📅 ' + currentEvent.date;
-    document.getElementById('time-btn').innerText = '⏰ ' + currentEvent.time;
+    document.getElementById('time-btn').innerText = '⏰ ' + (currentEvent.time || 'Выбрать время');
 }
 
+// Удаление
 function deleteEvent() {
     if (confirm('Удалить событие?')) {
-        alert('Удалено');
+        alert('Событие удалено');
         closeModal();
         showScreen('all');
     }
 }
 
-// Надёжный выбор даты для Telegram Mini App
+// ==================== ВЫБОР ДАТЫ И ВРЕМЕНИ ====================
+
 function pickDate() {
-    const dateInput = document.getElementById('real-date');
-    const dateBtn = document.getElementById('date-btn');
-
-    // Показываем нативный picker
-    if (dateInput.showPicker) {
-        dateInput.showPicker();
+    const input = document.getElementById('real-date');
+    input.focus();
+    if (input.showPicker) {
+        input.showPicker();
     } else {
-        // Fallback для мобильных WebView Telegram
-        dateInput.focus();
-        dateInput.click();
+        input.click();
     }
-
-    // Обработчик изменения
-    const onDateChange = function() {
-        if (this.value) {
-            const [year, month, day] = this.value.split('-');
-            const formatted = `${day}.${month}.${year}`;
-            
-            dateBtn.innerText = `📅 ${formatted}`;
-            
-            // Удаляем обработчик после первого использования
-            this.removeEventListener('change', onDateChange);
-        }
-    };
-
-    dateInput.addEventListener('change', onDateChange, { once: true });
 }
 
-// Обработка выбора времени
-document.getElementById('real-time').addEventListener('change', function() {
+function pickTime() {
+    const input = document.getElementById('real-time');
+    input.focus();
+    if (input.showPicker) {
+        input.showPicker();
+    } else {
+        input.click();
+    }
+}
+
+// Обновление кнопок после выбора
+document.getElementById('real-date').addEventListener('change', function() {
     if (this.value) {
-        // Четкое обращение по ID
-        document.getElementById('time-btn').innerText = '⏰ ' + this.value;
+        const [y, m, d] = this.value.split('-');
+        document.getElementById('date-btn').innerText = `📅 ${d}.${m}.${y}`;
     }
 });
 
-// 7. Обработка времени
 document.getElementById('real-time').addEventListener('change', function() {
     if (this.value) {
-        document.getElementById('time-btn').innerText = '⏰ ' + this.value;
+        document.getElementById('time-btn').innerText = `⏰ ${this.value}`;
     }
 });
 
-// Заглушка для сохранения
+// Сохранение события (заглушка)
 function saveEvent() {
-    alert('Событие сохранено!');
+    const name = document.getElementById('event-name').value.trim();
+    const dateBtn = document.getElementById('date-btn').innerText;
+    const timeBtn = document.getElementById('time-btn').innerText;
+    
+    if (!name) {
+        alert('Введите название события!');
+        return;
+    }
+    
+    alert(`✅ Событие сохранено!\n\nНазвание: ${name}\nДата: ${dateBtn}\nВремя: ${timeBtn}`);
+    // Здесь потом будешь отправлять данные в бота
 }
 
-// 8. Тестовые данные
+// ==================== ТЕСТОВЫЕ ДАННЫЕ ====================
 const testEvents = [];
 for (let i = 1; i <= 20; i++) {
     testEvents.push({
         name: `Событие #${i}`,
         date: `20.06.2026`,
-        time: `${i}:00`,
+        time: `${(i % 24).toString().padStart(2, '0')}:00`,
         notes: `Детали события ${i}`
     });
 }
