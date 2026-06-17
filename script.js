@@ -1,41 +1,36 @@
 const tg = window.Telegram.WebApp;
 tg.ready();
 
-// Имя
-if (tg.initDataUnsafe?.user) {
+// Подставляем имя
+if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
     document.getElementById('username').innerText = tg.initDataUnsafe.user.first_name;
 }
 
-// Экраны
+// Логика переключения экранов
 function showScreen(screenName) {
     document.getElementById('main-screen').style.display = (screenName === 'main') ? 'block' : 'none';
     document.getElementById('add-screen').style.display = (screenName === 'add') ? 'flex' : 'none';
 }
 
-// Загрузка
+// Заставка: исчезает через 1 секунду после полной загрузки
 window.addEventListener('load', () => {
-    // Ждем 2.6 секунды (чуть дольше, чем длится анимация 2.5с)
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
-        if (splash) {
-            splash.style.opacity = '0';
-            // После плавного исчезновения убираем из потока
-            setTimeout(() => {
-                splash.style.display = 'none';
-            }, 800);
-        }
-    }, 2600); 
+        splash.style.opacity = '0';
+        splash.style.visibility = 'hidden';
+    }, 1000);
+});
+// Обработка выбора даты и времени
+document.getElementById('real-date').addEventListener('change', function() {
+    const btn = document.querySelector('.custom-date-btn[onclick*="real-date"]');
+    if (this.value) {
+        btn.innerText = '📅 ' + this.value.split('-').reverse().join('.'); // Формат ДД.ММ.ГГГГ
+    }
 });
 
-// Календарь
-document.addEventListener('DOMContentLoaded', () => {
-    flatpickr("#date-input", {
-        dateFormat: "d.m.Y",
-        static: true,
-        locale: {
-            firstDayOfWeek: 1,
-            weekdays: { shorthand: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'] },
-            months: { shorthand: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'] }
-        }
-    });
+document.getElementById('real-time').addEventListener('change', function() {
+    const btn = document.querySelector('.custom-date-btn[onclick*="real-time"]');
+    if (this.value) {
+        btn.innerText = '⏰ ' + this.value;
+    }
 });
