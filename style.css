@@ -311,28 +311,31 @@ body {
 
 /* Селектор типа события: одноразовое или повторяющееся */
 
-/* Контейнер-подложка, как у полей ввода */
 .type-selector-wrapper {
-    display: flex;
-    gap: 4px; /* Небольшой отступ между кнопками */
-    padding: 4px; /* Отступ от краев подложки */
+    display: flex;          /* Включаем Flexbox */
+    flex-direction: row;    /* Принудительно в ряд */
+    justify-content: space-between; /* Распределяем пространство */
+    width: 100%;            /* Занимает всю ширину */
+    gap: 8px;               /* Отступ между кнопками */
+    padding: 4px; 
     background: var(--tg-theme-secondary-bg-color, var(--secondary));
     border-radius: 12px;
     margin-bottom: 20px;
+    box-sizing: border-box; /* Чтобы padding не ломал ширину */
 }
 
 .type-option {
-    flex: 1;
+    flex: 1;                /* Обе кнопки делят место пополам */
     padding: 12px;
     text-align: center;
-    border-radius: 9px; /* Чуть меньше, чтобы красиво вписывалось в подложку */
+    border-radius: 9px;
     color: var(--tg-theme-text-color, var(--text));
     cursor: pointer;
     font-weight: 500;
     transition: 0.3s;
+    white-space: nowrap;    /* Чтобы текст не прыгал на вторую строку */
 }
 
-/* Состояние активности */
 .type-option.active {
     background: var(--tg-theme-button-color);
     color: var(--tg-theme-button-text-color);
