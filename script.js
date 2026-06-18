@@ -57,29 +57,38 @@ function renderEvents(listId, eventArray) {
         
         // Значок типа события
         const typeIcon = event.type === 'recurring' 
-            ? '<span style="color: var(--tg-theme-button-color); margin-right: 6px;">↻</span>' 
-            : '<span style="color: var(--tg-theme-hint-color); margin-right: 6px;">•</span>';
+            ? '<span style="color: #4cc9f0; margin-right: 8px; font-size: 18px;">↻</span>' 
+            : '<span style="color: var(--tg-theme-hint-color); margin-right: 8px; font-size: 18px;">•</span>';
 
-        // Значок важности (восклицательный знак в треугольнике)
+        // Значок важности
         const importanceIcon = event.importance === 'high' 
-            ? '<span style="color: #ff9500; font-size: 16px; margin-left: 8px;">⚠️</span>' 
+            ? '<span style="color: #ff9500; font-size: 17px; margin-right: 12px;">⚠️</span>' 
             : '';
 
         const card = document.createElement('div');
         card.className = 'event-card';
         
         card.innerHTML = `
-            <div style="width: 100%;">
-                <div style="display: flex; align-items: center; margin-bottom: 6px;">
-                    ${typeIcon}
-                    <div class="event-name">${event.name}</div>
+            <div style="display: flex; width: 100%; align-items: flex-start;">
+                <!-- Номер события -->
+                <div style="margin-right: 12px; color: var(--tg-theme-hint-color); font-weight: 600; min-width: 24px;">
+                    #${index + 1}
                 </div>
                 
-                <div style="display: flex; justify-content: space-between; align-items: center; color: var(--tg-theme-hint-color); font-size: 14px;">
-                    <small>📅 ${event.date} | ⏰ ${event.time || '—'}</small>
-                    <div style="display: flex; align-items: center;">
-                        ${importanceIcon}
-                        <div class="event-timer">${timeLeft}</div>
+                <!-- Основное содержание -->
+                <div style="flex-grow: 1;">
+                    <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                        ${typeIcon}
+                        <div class="event-name">${event.name}</div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; color: var(--tg-theme-hint-color); font-size: 14px;">
+                        <small>📅 ${event.date} | ⏰ ${event.time || '—'}</small>
+                        
+                        <div style="display: flex; align-items: center;">
+                            ${importanceIcon}
+                            <div class="event-timer">${timeLeft}</div>
+                        </div>
                     </div>
                 </div>
             </div>
