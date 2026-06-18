@@ -337,3 +337,46 @@ function getTimeRemaining(eventDate, eventTime) {
 
     return result.length > 0 ? result.join(' ') : "Скоро";
 }
+
+
+
+
+// Инициализация выпадающих списков даты
+function initDatePickers() {
+    const daySelect = document.getElementById('day-select');
+    const monthSelect = document.getElementById('month-select');
+    const yearSelect = document.getElementById('year-select');
+
+    // Очистка перед заполнением (на случай перезапуска)
+    daySelect.innerHTML = '';
+    monthSelect.innerHTML = '';
+    yearSelect.innerHTML = '';
+
+    // Заполняем дни (01-31)
+    for (let i = 1; i <= 31; i++) {
+        let val = i.toString().padStart(2, '0');
+        daySelect.add(new Option(val, val));
+    }
+
+    // Заполняем месяцы
+    const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+    months.forEach((m, idx) => {
+        let val = (idx + 1).toString().padStart(2, '0');
+        monthSelect.add(new Option(m, val));
+    });
+
+    // Заполняем годы (от текущего до +10 лет)
+    const currentYear = new Date().getFullYear();
+    for (let i = currentYear; i <= currentYear + 10; i++) {
+        yearSelect.add(new Option(i, i));
+    }
+
+    // Устанавливаем текущую дату по умолчанию
+    const now = new Date();
+    daySelect.value = now.getDate().toString().padStart(2, '0');
+    monthSelect.value = (now.getMonth() + 1).toString().padStart(2, '0');
+    yearSelect.value = now.getFullYear();
+}
+
+// Запускаем инициализацию при загрузке скрипта
+initDatePickers();

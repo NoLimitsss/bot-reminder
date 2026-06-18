@@ -52,8 +52,12 @@
             <div class="type-option" onclick="selectType(this, 'recurring')">Повторяющееся</div>
         </div>
         <div class="date-picker-wrapper">
-            <input type="date" id="real-date" class="hidden-input">
-            <div id="date-btn" class="custom-date-btn" onclick="pickDate()">📅 Выбрать дату</div>
+            <label>Дата события:</label>
+            <div class="custom-date-container">
+                <select id="day-select" class="custom-select"></select>
+                <select id="month-select" class="custom-select"></select>
+                <select id="year-select" class="custom-select"></select>
+            </div>
         </div>
         <div class="date-picker-wrapper">
             <input type="time" id="real-time" class="hidden-input">
