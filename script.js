@@ -11,18 +11,25 @@ if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
 
 // 2. Переключение экранов
 function showScreen(screenName) {
-    const screens = ['main', 'add', 'upcoming', 'all', 'faq']; // Добавили faq
-    screens.forEach(name => {
-        const el = document.getElementById(name + '-screen');
-        if (el) {
-            el.style.display = (name === screenName) ? 'block' : 'none'; // Упрощено для всех
-            if (screenName === 'add') el.style.display = 'flex'; // Для формы сохранения
-            
-            // Рендер списков
-            if (screenName === 'all') renderEvents('all-list', testEvents);
-            if (screenName === 'upcoming') renderEvents('upcoming-list', testEvents.slice(0, 3));
-        }
-    });
+    // 1. Скрываем вообще ВСЕ экраны
+    const allScreens = document.querySelectorAll('.screen, #main-screen');
+    allScreens.forEach(el => el.style.display = 'none');
+
+    // 2. Если просят 'main', показываем его
+    if (screenName === 'main') {
+        document.getElementById('main-screen').style.display = 'flex';
+        return;
+    }
+
+    // 3. Иначе показываем нужный экран
+    const target = document.getElementById(screenName + '-screen');
+    if (target) {
+        target.style.display = 'block';
+        
+        // Рендер данных
+        if (screenName === 'all') renderEvents('all-list', testEvents);
+        if (screenName === 'upcoming') renderEvents('upcoming-list', testEvents.slice(0, 3));
+    }
 }
 
 // 3. Заставка
