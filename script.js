@@ -11,7 +11,7 @@ if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
 
 // 2. Переключение экранов
 function showScreen(screenName) {
-    // Скрываем ВСЁ
+    // Скрываем абсолютно всё
     document.querySelectorAll('.screen, #main-screen').forEach(el => {
         el.style.display = 'none';
     });
@@ -19,26 +19,38 @@ function showScreen(screenName) {
     if (screenName === 'main') {
         const main = document.getElementById('main-screen');
         main.style.display = 'flex';
-        // Принудительно триггерим перерасчёт flex
-        main.offsetHeight;
+        main.style.visibility = 'visible';
+        // Форсируем перерисовку
+        void main.offsetHeight;
         return;
     }
 
     const target = document.getElementById(screenName + '-screen');
     if (target) {
-        target.style.display = 'flex';   // ← было block, теперь flex как у main
+        target.style.display = 'flex';
+        target.style.visibility = 'visible';
+        
         if (screenName === 'all') renderEvents('all-list', testEvents);
         if (screenName === 'upcoming') renderEvents('upcoming-list', testEvents.slice(0, 3));
+        if (screenName === 'faq') renderFaq();
     }
 }
 
-// 3. Заставка
+// 3. Заставка + показ главного экрана
 window.addEventListener('load', () => {
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
+        
         splash.style.opacity = '0';
-        setTimeout(() => splash.style.visibility = 'hidden', 500);
-    },2000);
+        
+        setTimeout(() => {
+            splash.style.visibility = 'hidden';
+            splash.style.display = 'none';     // ← добавили
+            
+            // Главное — явно показываем главный экран
+            showScreen('main');
+        }, 500);
+    }, 2000); // чуть меньше 2 секунд, чтобы не было долгой пустоты
 });
 
 // 4. Рендер событий
