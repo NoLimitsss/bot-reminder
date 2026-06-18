@@ -69,9 +69,9 @@ h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
 #main-screen {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    min-height: 100vh; /* Растягиваем на весь экран */
     padding: 20px;
-    height: 100vh;
+    box-sizing: border-box;
 }
 
 #add-screen {
@@ -106,6 +106,7 @@ h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
     width: 100%;
     max-width: 400px; /* Чтобы кнопки не растягивались на огромных экранах */
     margin-top: 20px; 
+    align-self: center; /* Центрируем по вертикали */
 }
 .menu-item { 
     background: var(--tg-theme-secondary-bg-color); 
@@ -283,17 +284,39 @@ h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
 }
 
 /* Кнопка FAQ */
+#main-screen {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Растягиваем на весь экран */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Контейнер времени, который "раздвигает" пространство */
+.time-container {
+    flex-grow: 1; /* ЭТО КЛЮЧЕВОЙ МОМЕНТ: занимает всё свободное место */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Центрируем текст по вертикали внутри зоны */
+    align-items: center;
+    color: var(--tg-theme-hint-color);
+}
+
+.day-text { font-size: 16px; font-weight: bold; }
+.time-text { font-size: 32px; font-weight: bold; color: var(--tg-theme-text-color); margin: 5px 0; }
+.sun-times { display: flex; gap: 20px; font-size: 12px; }
+
+/* Футер в самом низу */
+.main-footer {
+    padding: 20px 0;
+    text-align: center;
+}
+
 .faq-btn {
     background: transparent;
     border: 1px solid var(--tg-theme-hint-color);
     color: var(--tg-theme-hint-color);
-    padding: 6px 16px;
+    padding: 8px 16px;
     border-radius: 20px;
     font-size: 12px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-.faq-btn:active {
-    background: var(--tg-theme-hint-color);
-    color: var(--tg-theme-bg-color);
 }
