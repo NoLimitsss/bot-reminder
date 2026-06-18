@@ -363,3 +363,49 @@ body {
     font-weight: bold;
     white-space: nowrap;
 }
+
+
+
+/* 1. Название события: две строки и многоточие */
+.event-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: bold;
+}
+
+/* 2. Контейнер примечаний в модалке */
+.notes-display-box {
+    flex: 1; 
+    overflow-y: auto;
+    padding: 12px;
+    background: var(--tg-theme-secondary-bg-color, var(--secondary));
+    border-radius: 10px;
+    margin: 10px 0;
+    line-height: 1.5;
+    font-size: 14px;
+    white-space: pre-wrap; /* Сохраняет абзацы */
+    word-wrap: break-word;
+    
+    /* Скрываем скроллбар */
+    scrollbar-width: none; 
+}
+.notes-display-box::-webkit-scrollbar {
+    display: none;
+}
+
+/* 3. Центрируем модальное окно */
+.modal-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    max-height: 80vh; /* Ограничиваем высоту окна */
+    display: flex;
+    flex-direction: column;
+}
