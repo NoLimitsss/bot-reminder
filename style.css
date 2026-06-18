@@ -311,9 +311,13 @@ body {
 
 /* Селектор типа события: одноразовое или повторяющееся */
 
-.type-selector {
+/* Контейнер-подложка, как у полей ввода */
+.type-selector-wrapper {
     display: flex;
-    gap: 10px;
+    gap: 4px; /* Небольшой отступ между кнопками */
+    padding: 4px; /* Отступ от краев подложки */
+    background: var(--tg-theme-secondary-bg-color, var(--secondary));
+    border-radius: 12px;
     margin-bottom: 20px;
 }
 
@@ -321,14 +325,14 @@ body {
     flex: 1;
     padding: 12px;
     text-align: center;
-    border-radius: 12px;
-    background: var(--tg-theme-secondary-bg-color, var(--secondary));
-    color: var(--tg-theme-hint-color, var(--hint));
+    border-radius: 9px; /* Чуть меньше, чтобы красиво вписывалось в подложку */
+    color: var(--tg-theme-text-color, var(--text));
     cursor: pointer;
     font-weight: 500;
     transition: 0.3s;
 }
 
+/* Состояние активности */
 .type-option.active {
     background: var(--tg-theme-button-color);
     color: var(--tg-theme-button-text-color);
