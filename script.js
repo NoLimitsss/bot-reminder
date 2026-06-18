@@ -225,3 +225,27 @@ function selectType(el, type) {
     // Здесь можно сохранить тип в переменную, чтобы потом отправлять в бота
     console.log("Выбран тип:", type);
 }
+
+
+
+// Логика "умного" скролла для примечаний
+const notesField = document.getElementById('event-notes');
+
+if (notesField) {
+    // При клике (фокусе) — плавно центрируем поле
+    notesField.addEventListener('focus', function() {
+        setTimeout(() => {
+            this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300); // Задержка для плавного выезда клавиатуры
+    });
+
+    // При потере фокуса — возвращаем экран вверх
+    notesField.addEventListener('blur', function() {
+        setTimeout(() => {
+            const screen = document.getElementById('add-screen');
+            if (screen) {
+                screen.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }, 100);
+    });
+}
