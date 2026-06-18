@@ -43,6 +43,7 @@ window.addEventListener('load', () => {
 
 // 4. Рендер событий
 // 4. Рендер событий
+// 4. Рендер событий
 function renderEvents(listId, eventArray) {
     const container = document.getElementById(listId);
     if (!container) return;
@@ -58,8 +59,8 @@ function renderEvents(listId, eventArray) {
         
         // Значок типа события
         const typeIcon = event.type === 'recurring' 
-            ? '<span style="color: #4cc9f0; margin-right: 6px; font-size: 17px;">↻</span>' 
-            : '<span style="color: var(--tg-theme-hint-color); margin-right: 6px; font-size: 17px;">•</span>';
+            ? '<span style="color: #4cc9f0; font-size: 18px; line-height: 1; vertical-align: middle;">↻</span>' 
+            : '<span style="color: var(--tg-theme-hint-color); font-size: 18px; line-height: 1; vertical-align: middle;">•</span>';
 
         // Значок важности
         const importanceIcon = event.importance === 'high' 
@@ -72,15 +73,15 @@ function renderEvents(listId, eventArray) {
         card.innerHTML = `
             <div style="display: flex; width: 100%; gap: 10px;">
                 <!-- Номер события -->
-                <div style="color: var(--tg-theme-hint-color); font-weight: 600; min-width: 22px; flex-shrink: 0;">
+                <div style="color: var(--tg-theme-hint-color); font-weight: 600; min-width: 22px; flex-shrink: 0; padding-top: 2px;">
                     #${index + 1}
                 </div>
                 
                 <!-- Основное содержание -->
                 <div style="flex-grow: 1; min-width: 0;">
-                    <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 5px;">
                         ${typeIcon}
-                        <div class="event-name">${event.name}</div>
+                        <div class="event-name" style="margin-left: 4px;">${event.name}</div>
                     </div>
                     
                     <div style="display: flex; justify-content: space-between; align-items: center; color: var(--tg-theme-hint-color); font-size: 14px;">
