@@ -150,6 +150,7 @@ body {
     color: var(--tg-theme-text-color, var(--text)); 
     width: 100%; 
     box-sizing: border-box;
+    resize: none;
 }
 
 .custom-date-btn {
