@@ -199,21 +199,29 @@ body {
 }
 
 .event-card {
-    display: flex;
-    padding: 12px;
-    background: var(--tg-theme-secondary-bg-color);
-    border-radius: 12px;
-    margin-bottom: 8px;
+    padding: 14px 16px;
+    background: var(--tg-theme-secondary-bg-color, var(--secondary));
+    border-radius: 14px;
     cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.event-card:active {
+    transform: scale(0.98);
 }
 
 
 .event-name {
     font-size: 16px;
     font-weight: 600;
-    /* Убираем ограничение, если вдруг было, 
-       чтобы заголовок занял всю строку */
-    width: 100%; 
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.35;
 }
 
 .empty-state {

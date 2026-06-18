@@ -54,26 +54,38 @@ function renderEvents(listId, eventArray) {
 
     eventArray.forEach((event, index) => {
         const timeLeft = getTimeRemaining(event.date, event.time);
+        
+        // Значок типа события
+        const typeIcon = event.type === 'recurring' 
+            ? '<span style="color: var(--tg-theme-button-color); margin-right: 6px;">↻</span>' 
+            : '<span style="color: var(--tg-theme-hint-color); margin-right: 6px;">•</span>';
+
+        // Значок важности (восклицательный знак в треугольнике)
+        const importanceIcon = event.importance === 'high' 
+            ? '<span style="color: #ff9500; font-size: 16px; margin-left: 8px;">⚠️</span>' 
+            : '';
+
         const card = document.createElement('div');
         card.className = 'event-card';
         
-        // Название события теперь на всю ширину, инфо — строкой ниже
         card.innerHTML = `
             <div style="width: 100%;">
-                <div class="event-name" style="margin-bottom: 6px; font-weight: 600;">
-                    ${event.name}
+                <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                    ${typeIcon}
+                    <div class="event-name">${event.name}</div>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; color: var(--tg-theme-hint-color);">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; color: var(--tg-theme-hint-color); font-size: 14px;">
                     <small>📅 ${event.date} | ⏰ ${event.time || '—'}</small>
-                    <div class="event-timer" style="font-weight: 600; color: var(--tg-theme-button-color);">
-                        ${timeLeft}
+                    <div style="display: flex; align-items: center;">
+                        ${importanceIcon}
+                        <div class="event-timer">${timeLeft}</div>
                     </div>
                 </div>
             </div>
         `;
         
-        // Клик открывает модалку с деталями
-        card.onclick = () => openDetails(event); 
+        card.onclick = () => openDetails(event);
         container.appendChild(card);
     });
 }
@@ -173,10 +185,10 @@ function saveEvent() {
 }
 
 // ==================== ГЕНЕРАТОР ТЕСТОВЫХ ДАННЫХ ====================
+// ==================== ГЕНЕРАТОР ТЕСТОВЫХ ДАННЫХ ====================
 const testEvents = [];
 
 const subjects = ["Встреча", "Звонок", "Дедлайн", "План", "Покупка", "Визит", "Обед", "Тренировка", "Презентация", "Конференция"];
-const descriptions = ["по обсуждению стратегии развития", "по поводу годового отчета", "для согласования новых макетов", "по вопросам технической поддержки"];
 
 function generateRandomText(length) {
     let text = "";
@@ -187,22 +199,15 @@ function generateRandomText(length) {
 }
 
 for (let i = 1; i <= 20; i++) {
-    // Формируем название, стремясь к 50 символам
-    let rawTitle = `${subjects[i % subjects.length]} №${i}: ${descriptions[i % descriptions.length]}`;
-    // Если короче 50 — добиваем пробелами и точками, если длиннее — обрезаем
-    const name = rawTitle.length < 50 
-        ? rawTitle.padEnd(50, '.') 
-        : rawTitle.substring(0, 50);
-    
-    // Примечание: 500 символов
-    const notes = generateRandomText(500);
+    let rawTitle = `${subjects[i % subjects.length]} №${i}`;
     
     testEvents.push({
-        name: name,
+        name: rawTitle.length < 50 ? rawTitle.padEnd(48, '.') : rawTitle.substring(0, 48),
         date: `20.06.2026`,
         time: `${(i % 24).toString().padStart(2, '0')}:00`,
-        type: i % 2 === 0 ? 'recurring' : 'once',
-        notes: notes
+        type: i % 3 === 0 ? 'recurring' : 'once',           // каждый третий — повторяющееся
+        importance: i % 4 === 0 ? 'high' : 'normal',       // каждый четвёртый — важный
+        notes: generateRandomText(450)
     });
 }
 
