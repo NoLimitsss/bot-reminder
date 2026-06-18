@@ -215,3 +215,13 @@ function toggleFaq(index) {
 
 // Запуск при старте
 document.addEventListener('DOMContentLoaded', renderFaq);
+
+
+
+// Селектор выбора типо события: одноразовое или повторяющееся
+function selectType(el, type) {
+    document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('active'));
+    el.classList.add('active');
+    // Здесь можно сохранить тип в переменную, чтобы потом отправлять в бота
+    console.log("Выбран тип:", type);
+}
