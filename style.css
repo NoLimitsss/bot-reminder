@@ -1,38 +1,39 @@
 :root {
-    /* Добавляем fallback-цвета, чтобы не было «белого ада» */
-    --bg: #1c1c1e;
-    --secondary: #4f4f57;
-    --text: #ffffff;
-    --hint: #8e8e93;
+    /* Основные fallback-цвета (на случай, если Telegram не передаст свои темы) */
+    --bg: #1c1c1e;           /* Тёмный фон по умолчанию */
+    --secondary: #4f4f57;     /* Вторичный фон для карточек, кнопок */
+    --text: #ffffff;          /* Основной цвет текста */
+    --hint: #8e8e93;          /* Цвет подсказок, второстепенного текста */
 }
 
-.custom-date-btn {
-    background: var(--tg-theme-secondary-bg-color, var(--secondary));
-    border: 1px solid var(--tg-theme-hint-color, var(--hint));
-    color: var(--tg-theme-text-color, var(--text));
-}
+/* ====================== ГЛОБАЛЬНЫЕ СТИЛИ ====================== */
 
-
-
-
-
-
-/* Основные настройки и легкий фон-градиент */
-body { 
+/* Основные настройки всего приложения */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;                    /* Убираем скролл тела */
     background-color: var(--tg-theme-bg-color, var(--bg));
     color: var(--tg-theme-text-color, var(--text));
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    box-sizing: border-box;
+}
+
+/* Body с отступами */
+body { 
     padding: 20px; 
-    margin: 0;
     min-height: 100vh;
 }
 
-/* Стили заставки */
+/* ====================== ЗАСТАВКА ====================== */
+
 #splash-screen {
     position: fixed;
     top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background-color: var(--tg-theme-bg-color);
+    width: 100vw; 
+    height: 100vh;
+    background-color: var(--tg-theme-bg-color, var(--bg));
     display: flex;
     justify-content: center;
     align-items: center;
@@ -41,79 +42,125 @@ body {
 }
 
 .splash-logo {     
-    color: var(--tg-theme-text-color);     
+    color: var(--tg-theme-text-color, var(--text));     
     font-size: 28px;     
     font-weight: 700;     
-    /* Анимация: плавно появляется и поднимается */     
     animation: fade-up 2.0s ease-out forwards; 
 }
 
 @keyframes fade-up {
-    0% { opacity: 0; transform: translateY(20px); }
-    50% { opacity: 1; transform: translateY(px); }
+    0%   { opacity: 0; transform: translateY(20px); }
+    50%  { opacity: 1; transform: translateY(0); }
     100% { opacity: 0; transform: translateY(-20px); }
 }
 
-/* Остальные стили интерфейса */
-h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
-.screen { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 15px; 
-    max-height: 100vh;
-    overflow-y: auto;
-    padding-bottom: 50px;
-}
+/* ====================== ЭКРАНЫ ====================== */
 
-
-#main-screen {
-    display: flex;
+.screen, #main-screen {
+    display: none;                    /* По умолчанию все экраны скрыты */
     flex-direction: column;
-    min-height: 100vh; /* Растягиваем на весь экран */
-    padding: 20px;
+    gap: 15px;
+    height: calc(100vh - 40px);       /* Учитываем padding body */
+    overflow-y: auto;
+    padding-bottom: 60px;
     box-sizing: border-box;
 }
 
-#add-screen {
-    padding: 2px; /* Добавляем воздух по бокам */
-    box-sizing: border-box; /* Чтобы отступы не ломали ширину */
+/* Главный экран (особые настройки) */
+#main-screen {
+    display: flex;                    /* Показываем сразу при загрузке */
+    min-height: calc(100vh - 40px);
+    padding: 20px;
+    box-sizing: border-box;
+    gap: 20px;
 }
 
+/* Экран добавления события */
+#add-screen {
+    padding: 10px 5px;
+}
 
-
+/* ====================== ФОРМЫ И КНОПКИ ====================== */
 
 .input-field { 
-    background: var(--tg-theme-secondary-bg-color); 
-    border: 1px solid var(--tg-theme-hint-color); 
-    padding: 15px; border-radius: 12px; 
-    color: var(--tg-theme-text-color); width: 100%; box-sizing: border-box;
+    background: var(--tg-theme-secondary-bg-color, var(--secondary)); 
+    border: 1px solid var(--tg-theme-hint-color, var(--hint)); 
+    padding: 15px; 
+    border-radius: 12px; 
+    color: var(--tg-theme-text-color, var(--text)); 
+    width: 100%; 
+    box-sizing: border-box;
+    font-size: 16px;
 }
 
-.hidden-input { opacity: 0; position: absolute; z-index: -1; }
+.hidden-input { 
+    opacity: 0; 
+    position: absolute; 
+    z-index: -1; 
+}
+
+/* Кастомные кнопки выбора даты и времени */
 .custom-date-btn {
-    background: var(--tg-theme-secondary-bg-color);
-    padding: 15px; border-radius: 12px; border: 1px solid var(--tg-theme-hint-color);
-    text-align: center; color: var(--tg-theme-text-color); font-weight: 500;
+    position: relative;
+    z-index: 10;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s;
+    padding: 15px;
+    border-radius: 12px;
+    background: var(--tg-theme-secondary-bg-color, var(--secondary));
+    border: 1px solid var(--tg-theme-hint-color, var(--hint));
+    text-align: center;
+    color: var(--tg-theme-text-color, var(--text));
+    font-weight: 500;
 }
 
-.save-btn { background: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; }
-.back-btn { background: none; border: none; color: var(--tg-theme-link-color); text-align: left; padding: 5px; cursor: pointer; }
+.custom-date-btn:active {
+    background: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    transform: scale(0.97);
+}
+
+/* Кнопки действий */
+.save-btn { 
+    background: var(--tg-theme-button-color); 
+    color: var(--tg-theme-button-text-color); 
+    border: none; 
+    padding: 15px; 
+    border-radius: 12px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    margin-top: 10px;
+}
+
+.back-btn { 
+    background: none; 
+    border: none; 
+    color: var(--tg-theme-link-color); 
+    text-align: left; 
+    padding: 5px; 
+    cursor: pointer; 
+    font-size: 16px;
+}
+
+/* ====================== ГЛАВНОЕ МЕНЮ ====================== */
 
 .grid { 
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Две колонки */
+    grid-template-columns: 1fr 1fr;
     gap: 15px;
     width: 100%;
-    max-width: 400px; /* Чтобы кнопки не растягивались на огромных экранах */
-    margin-top: 20px; 
-    align-self: center; /* Центрируем по вертикали */
+    max-width: 400px;
+    margin: 0 auto;
+    align-self: center;
 }
+
 .menu-item { 
-    background: var(--tg-theme-secondary-bg-color); 
-    padding: 30px 15px; /* Увеличили вертикальный отступ */
-    border-radius: 24px; /* Более скругленные углы */
+    background: var(--tg-theme-secondary-bg-color, var(--secondary)); 
+    padding: 30px 15px;
+    border-radius: 24px;
     border: none; 
-    color: var(--tg-theme-text-color); 
+    color: var(--tg-theme-text-color, var(--text)); 
     font-weight: 700; 
     font-size: 15px;
     cursor: pointer;
@@ -127,55 +174,20 @@ h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
 
 .menu-item:active { 
     transform: scale(0.95); 
-    background: var(--tg-theme-hint-color);
+    background: var(--tg-theme-hint-color, var(--hint));
 }
 
+/* ====================== СПИСКИ СОБЫТИЙ ====================== */
 
-
-/* Стили для выбора типа события. Переключатель одноразовое/многоразовое */
-.type-selector {
-    display: flex;
-    gap: 10px;
-    background: var(--tg-theme-secondary-bg-color);
-    padding: 5px;
-    border-radius: 12px;
-}
-
-.hidden-radio { display: none; }
-
-.radio-btn {
-    flex: 1;
-    padding: 12px;
-    text-align: center;
-    border-radius: 8px;
-    cursor: pointer;
-    background: transparent;
-    color: var(--tg-theme-hint-color);
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-/* Когда кнопка выбрана */
-.hidden-radio:checked + .radio-btn {
-    background: var(--tg-theme-button-color, #ffffff);
-    color: var(--tg-theme-button-text-color, #000000);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-}
-
-
-
-
-/* Контейнеры для списка событий и ближайших событий */
 .event-container {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
-/* Стиль карточки события (когда они появятся) */
 .event-card {
-    background: var(--tg-theme-secondary-bg-color);
+    background: var(--tg-theme-secondary-bg-color, var(--secondary));
     padding: 16px;
     border-radius: 12px;
     display: flex;
@@ -183,26 +195,36 @@ h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
     align-items: center;
 }
 
-/* Стиль для пустого состояния */
+/* Пустой список */
 .empty-state {
     text-align: center;
-    color: var(--tg-theme-hint-color);
+    color: var(--tg-theme-hint-color, var(--hint));
     padding: 40px;
     font-style: italic;
 }
 
+/* ====================== МОДАЛЬНОЕ ОКНО ====================== */
 
-/* Стили для модального окна в блоке "Все события" (если понадобится) */
 .modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px);
-    display: flex; align-items: center; justify-content: center; z-index: 1000;
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6); 
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center; 
+    justify-content: center; 
+    z-index: 1000;
 }
+
 .modal-content {
-    background: var(--tg-theme-bg-color); width: 85%; padding: 20px;
-    border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    background: var(--tg-theme-bg-color, var(--bg)); 
+    width: 85%; 
+    padding: 20px;
+    border-radius: 20px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
-/* Стили для кнопок редактировать и удалить под модальным окном */
+
 .edit-btn {
     flex: 1;
     background: var(--tg-theme-button-color);
@@ -225,98 +247,61 @@ h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
     cursor: pointer;
 }
 
-/* Стили для кастомных кнопок выбора даты */
-.date-picker-wrapper {
-    position: relative;
-    width: 100%;
-}
+/* ====================== ВРЕМЯ И ЧАСЫ ====================== */
 
-.hidden-input {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    z-index: 5;           /* ниже кнопки */
-    pointer-events: none; /* важно! */
-}
-
-.custom-date-btn {
-    position: relative;
-    z-index: 10;
-    cursor: pointer;
-    user-select: none;
-    transition: all 0.2s;
-    padding: 15px;
-    border-radius: 12px;
-    background: var(--tg-theme-secondary-bg-color);
-    border: 1px solid var(--tg-theme-hint-color);
-    text-align: center;
-    color: var(--tg-theme-text-color);
-    font-weight: 500;
-}
-
-.custom-date-btn:active {
-    background: var(--tg-theme-button-color);
-    color: var(--tg-theme-button-text-color);
-    transform: scale(0.97);
-}
-
-
-
-
-/* Панель времени */
-.info-panel {
-    margin-top: 30px;
-    padding: 15px;
-    background: var(--tg-theme-secondary-bg-color);
-    border-radius: 12px;
-    text-align: center;
-    font-size: 14px;
-    color: var(--tg-theme-hint-color);
-}
-.sun-times {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 8px;
-    font-size: 12px;
-}
-
-/* Кнопка FAQ */
-#main-screen {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh; /* Растягиваем на весь экран */
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-/* Контейнер времени, который "раздвигает" пространство */
 .time-container {
-    flex-grow: 1; /* ЭТО КЛЮЧЕВОЙ МОМЕНТ: занимает всё свободное место */
+    flex-grow: 1;                     /* Главный "растягиватель" пространства */
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Центрируем текст по вертикали внутри зоны */
+    justify-content: center;
     align-items: center;
-    color: var(--tg-theme-hint-color);
+    color: var(--tg-theme-hint-color, var(--hint));
 }
 
-.day-text { font-size: 16px; font-weight: bold; }
-.time-text { font-size: 32px; font-weight: bold; color: var(--tg-theme-text-color); margin: 5px 0; }
-.sun-times { display: flex; gap: 20px; font-size: 12px; }
+.day-text { 
+    font-size: 16px; 
+    font-weight: bold; 
+}
 
-/* Футер в самом низу */
+.time-text { 
+    font-size: 32px; 
+    font-weight: bold; 
+    color: var(--tg-theme-text-color, var(--text)); 
+    margin: 5px 0; 
+}
+
+.sun-times { 
+    display: flex; 
+    gap: 20px; 
+    font-size: 12px; 
+    margin-top: 8px;
+}
+
+/* Футер */
 .main-footer {
     padding: 20px 0;
     text-align: center;
+    margin-top: auto;                 /* Прижимает футер вниз */
 }
 
 .faq-btn {
     background: transparent;
-    border: 1px solid var(--tg-theme-hint-color);
-    color: var(--tg-theme-hint-color);
+    border: 1px solid var(--tg-theme-hint-color, var(--hint));
+    color: var(--tg-theme-hint-color, var(--hint));
     padding: 8px 16px;
     border-radius: 20px;
     font-size: 12px;
 }
+
+/* ====================== ДОПОЛНИТЕЛЬНЫЕ ЭЛЕМЕНТЫ ====================== */
+
+h1 { 
+    font-size: 20px; 
+    margin-bottom: 20px; 
+    text-align: center; 
+}
+
+/* Неиспользуемые, но оставлены на будущее */
+/*.info-panel, .type-selector, .hidden-radio, .radio-btn {
+    /* Стили для будущих фич */
+/*} */

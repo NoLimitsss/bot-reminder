@@ -11,22 +11,22 @@ if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
 
 // 2. Переключение экранов
 function showScreen(screenName) {
-    // 1. Скрываем вообще ВСЕ экраны
-    const allScreens = document.querySelectorAll('.screen, #main-screen');
-    allScreens.forEach(el => el.style.display = 'none');
+    // Скрываем ВСЁ
+    document.querySelectorAll('.screen, #main-screen').forEach(el => {
+        el.style.display = 'none';
+    });
 
-    // 2. Если просят 'main', показываем его
     if (screenName === 'main') {
-        document.getElementById('main-screen').style.display = 'flex';
+        const main = document.getElementById('main-screen');
+        main.style.display = 'flex';
+        // Принудительно триггерим перерасчёт flex
+        main.offsetHeight;
         return;
     }
 
-    // 3. Иначе показываем нужный экран
     const target = document.getElementById(screenName + '-screen');
     if (target) {
-        target.style.display = 'block';
-        
-        // Рендер данных
+        target.style.display = 'flex';   // ← было block, теперь flex как у main
         if (screenName === 'all') renderEvents('all-list', testEvents);
         if (screenName === 'upcoming') renderEvents('upcoming-list', testEvents.slice(0, 3));
     }
