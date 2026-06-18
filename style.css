@@ -292,12 +292,18 @@ body {
 }
 
 .faq-answer {
-    padding: 16px; /* Равномерный отступ со всех сторон */
+    padding: 16px;
     color: var(--tg-theme-hint-color, var(--hint));
     font-size: 14px;
-    line-height: 1.6; /* Увеличиваем межстрочный интервал для читаемости */
-    text-align: left; /* Принудительное выравнивание по левому краю */
+    line-height: 1.6;
+    
+    /* Вот это делает выравнивание по ширине: */
+    text-align: justify; 
+    
+    /* Чтобы слова не обрывались посередине некрасиво */
+    hyphens: auto; 
+    
     display: none;
-    white-space: pre-wrap; /* Сохраняет твои переносы строк */
-    word-wrap: break-word; /* Чтобы длинные слова не вылезали за экран */
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
