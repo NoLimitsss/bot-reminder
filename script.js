@@ -11,7 +11,7 @@ if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
 
 // 2. Переключение экранов
 function showScreen(screenName) {
-    // Скрываем абсолютно всё
+    // Скрываем ВСЁ
     document.querySelectorAll('.screen, #main-screen').forEach(el => {
         el.style.display = 'none';
     });
@@ -19,38 +19,26 @@ function showScreen(screenName) {
     if (screenName === 'main') {
         const main = document.getElementById('main-screen');
         main.style.display = 'flex';
-        main.style.visibility = 'visible';
-        // Форсируем перерисовку
-        void main.offsetHeight;
+        // Принудительно триггерим перерасчёт flex
+        main.offsetHeight;
         return;
     }
 
     const target = document.getElementById(screenName + '-screen');
     if (target) {
-        target.style.display = 'flex';
-        target.style.visibility = 'visible';
-        
+        target.style.display = 'flex';   // ← было block, теперь flex как у main
         if (screenName === 'all') renderEvents('all-list', testEvents);
         if (screenName === 'upcoming') renderEvents('upcoming-list', testEvents.slice(0, 3));
-        if (screenName === 'faq') renderFaq();
     }
 }
 
-// 3. Заставка + показ главного экрана
+// 3. Заставка
 window.addEventListener('load', () => {
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
-        
         splash.style.opacity = '0';
-        
-        setTimeout(() => {
-            splash.style.visibility = 'hidden';
-            splash.style.display = 'none';     // ← добавили
-            
-            // Главное — явно показываем главный экран
-            showScreen('main');
-        }, 500);
-    }, 2000); // чуть меньше 2 секунд, чтобы не было долгой пустоты
+        setTimeout(() => splash.style.visibility = 'hidden', 500);
+    },2000);
 });
 
 // 4. Рендер событий
@@ -70,9 +58,9 @@ function renderEvents(listId, eventArray) {
         card.className = 'event-card';
         card.innerHTML = `
             <div style="margin-right: 15px; color: var(--tg-theme-hint-color);">#${index + 1}</div>
-            <div style="flex-grow: 1; overflow: hidden;">
-                <div class="event-name">${event.name}</div>
-                <small style="color: var(--tg-theme-hint-color);">📅 ${event.date} | ⏰ ${event.time || '—'}</small>
+            <div style="flex-grow: 1;">
+                <strong>${event.name}</strong><br>
+                <small>📅 ${event.date} | ⏰ ${event.time || '—'}</small>
             </div>
             <div class="event-timer">${timeLeft}</div>
         `;
@@ -84,21 +72,13 @@ function renderEvents(listId, eventArray) {
 // 5. Модальное окно
 function openDetails(event) {
     currentEvent = event;
-    
-    // Заполняем основные поля
     document.getElementById('modal-title').innerText = event.name;
     document.getElementById('modal-date').innerText = event.date;
     document.getElementById('modal-time').innerText = event.time || '—';
-    
-    // Новый тип: определяем, что писать
-    document.getElementById('modal-type').innerText = event.type === 'recurring' ? 'Повторяющееся' : 'Одноразовое';
-    
-    // Вывод примечаний в div (нередактируемый блок)
-    const notesBox = document.getElementById('modal-notes-display');
-    notesBox.innerText = event.notes || 'Нет примечаний';
-    
+    document.getElementById('modal-notes').innerText = event.notes || 'Без примечаний';
     document.getElementById('modal-overlay').style.display = 'flex';
 }
+
 function closeModal() {
     document.getElementById('modal-overlay').style.display = 'none';
 }
@@ -168,18 +148,16 @@ document.getElementById('real-time').addEventListener('change', function() {
 // Сохранение события (заглушка)
 function saveEvent() {
     const name = document.getElementById('event-name').value.trim();
-    // Ищем кнопку, у которой есть класс 'active'
-    const activeType = document.querySelector('.type-option.active');
-    const type = activeType ? (activeType.innerText.includes('Повторяющееся') ? 'recurring' : 'once') : 'once';
+    const dateBtn = document.getElementById('date-btn').innerText;
+    const timeBtn = document.getElementById('time-btn').innerText;
     
     if (!name) {
         alert('Введите название события!');
         return;
     }
     
-    // Теперь переменная 'type' содержит нужный нам статус
-    console.log("Сохраняем событие типа:", type);
-    // ... остальная логика сохранения
+    alert(`✅ Событие сохранено!\n\nНазвание: ${name}\nДата: ${dateBtn}\nВремя: ${timeBtn}`);
+    // Здесь потом будешь отправлять данные в бота
 }
 
 // ==================== ТЕСТОВЫЕ ДАННЫЕ ====================
