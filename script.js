@@ -186,3 +186,32 @@ function updateClock() {
 // Запускаем обновление при загрузке
 setInterval(updateClock, 1000);
 updateClock();
+
+// ЛОГИКА FAQ С ВОПРОСАМИ
+
+function renderFaq() {
+    const faqList = document.getElementById('faq-list');
+    if (!faqList) return;
+    
+    faqList.innerHTML = faqData.map((item, index) => `
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(${index})">
+                ${item.question}
+                <span id="icon-${index}" style="font-size: 10px;">▼</span>
+            </button>
+            <div id="ans-${index}" class="faq-answer">${item.answer}</div>
+        </div>
+    `).join('');
+}
+
+function toggleFaq(index) {
+    const answer = document.getElementById(`ans-${index}`);
+    const icon = document.getElementById(`icon-${index}`);
+    const isVisible = answer.style.display === 'block';
+    
+    answer.style.display = isVisible ? 'none' : 'block';
+    icon.innerText = isVisible ? '▼' : '▲';
+}
+
+// Запуск при старте
+document.addEventListener('DOMContentLoaded', renderFaq);

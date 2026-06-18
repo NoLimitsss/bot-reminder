@@ -262,3 +262,42 @@ body {
 #add-screen {
     padding: 10px 5px;
 }
+
+
+/* FAQ Accordion Styles */
+#faq-list { 
+    margin-top: 10px; 
+}
+
+.faq-item {
+    margin-bottom: 8px;
+    border-radius: 12px;
+    background: var(--tg-theme-secondary-bg-color, var(--secondary));
+    overflow: hidden;
+}
+
+.faq-question {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    background: none;
+    color: var(--tg-theme-text-color, var(--text));
+    text-align: left;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-answer {
+    padding: 16px; /* Равномерный отступ со всех сторон */
+    color: var(--tg-theme-hint-color, var(--hint));
+    font-size: 14px;
+    line-height: 1.6; /* Увеличиваем межстрочный интервал для читаемости */
+    text-align: left; /* Принудительное выравнивание по левому краю */
+    display: none;
+    white-space: pre-wrap; /* Сохраняет твои переносы строк */
+    word-wrap: break-word; /* Чтобы длинные слова не вылезали за экран */
+}
