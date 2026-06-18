@@ -261,3 +261,39 @@ h1 { font-size: 20px; margin-bottom: 30px; text-align: center; }
     color: var(--tg-theme-button-text-color);
     transform: scale(0.97);
 }
+
+
+
+
+/* Панель времени */
+.info-panel {
+    margin-top: 30px;
+    padding: 15px;
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: 12px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--tg-theme-hint-color);
+}
+.sun-times {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 8px;
+    font-size: 12px;
+}
+
+/* Кнопка FAQ */
+.faq-btn {
+    background: transparent;
+    border: 1px solid var(--tg-theme-hint-color);
+    color: var(--tg-theme-hint-color);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.faq-btn:active {
+    background: var(--tg-theme-hint-color);
+    color: var(--tg-theme-bg-color);
+}

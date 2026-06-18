@@ -11,13 +11,14 @@ if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
 
 // 2. Переключение экранов
 function showScreen(screenName) {
-    const screens = ['main', 'add', 'upcoming', 'all'];
+    const screens = ['main', 'add', 'upcoming', 'all', 'faq']; // Добавили faq
     screens.forEach(name => {
         const el = document.getElementById(name + '-screen');
         if (el) {
-            el.style.display = (name === screenName) ? 
-                (screenName === 'add' ? 'flex' : 'block') : 'none';
+            el.style.display = (name === screenName) ? 'block' : 'none'; // Упрощено для всех
+            if (screenName === 'add') el.style.display = 'flex'; // Для формы сохранения
             
+            // Рендер списков
             if (screenName === 'all') renderEvents('all-list', testEvents);
             if (screenName === 'upcoming') renderEvents('upcoming-list', testEvents.slice(0, 3));
         }
@@ -160,3 +161,21 @@ for (let i = 1; i <= 20; i++) {
         notes: `Детали события ${i}`
     });
 }
+
+// ==================== ЧАСЫ И ДАТА ====================
+
+function updateClock() {
+    const now = new Date();
+    
+    // День недели
+    const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+    document.getElementById('current-day').innerText = `Сегодня: ${days[now.getDay()]}`;
+    
+    // Время
+    const timeStr = now.toLocaleTimeString('ru-RU');
+    document.getElementById('current-time').innerText = timeStr;
+}
+
+// Запускаем обновление при загрузке
+setInterval(updateClock, 1000);
+updateClock();

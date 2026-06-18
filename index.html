@@ -11,6 +11,8 @@
         <h1 class="splash-logo">Мой планировщик</h1>
     </div>
 
+
+    
     <div id="main-screen">
         <h1>Здравствуйте, <span id="username">гость</span>!</h1>
         <div class="grid">
@@ -26,8 +28,32 @@
             <button class="menu-item">
                 <span style="font-size: 24px;">⚙️</span> Настройки
             </button>
+
+            <!-- Блок с текущей датой, временем и временем восхода/заката, а также FAQ!-->
+            <div class="info-panel">
+                <div id="current-day">Сегодня: --</div>
+                <div id="current-time">00:00:00</div>
+                <div class="sun-times">
+                    <span>🌅 Восход: 04:30</span>
+                    <span>🌇 Закат: 21:15</span>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="faq-btn" onclick="showScreen('faq')">FAQ / Контакты</button>
+            </div>
+
+            <div id="faq-screen" class="screen" style="display: none;">
+                <button class="back-btn" onclick="showScreen('main')">← Назад</button>
+                <h1>FAQ</h1>
+                <p>Здесь будут ваши ответы на вопросы...</p>
+                <p><strong>Контакты:</strong> @your_username</p>
+            </div>
         </div>
     </div>
+
+
+
 
     <div id="add-screen" class="screen" style="display: none;">
         <button class="back-btn" onclick="showScreen('main')">← Назад</button>
