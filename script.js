@@ -53,20 +53,21 @@ function renderEvents(listId, eventArray) {
     }
 
     eventArray.forEach((event, index) => {
+        const timeLeft = getTimeRemaining(event.date, event.time);
         const card = document.createElement('div');
         card.className = 'event-card';
         card.innerHTML = `
             <div style="margin-right: 15px; color: var(--tg-theme-hint-color);">#${index + 1}</div>
             <div style="flex-grow: 1;">
                 <strong>${event.name}</strong><br>
-                <small>📅 ${event.date} | ⏰ ${event.time}</small>
+                <small>📅 ${event.date} | ⏰ ${event.time || '—'}</small>
             </div>
+            <div class="event-timer">${timeLeft}</div>
         `;
         card.onclick = () => openDetails(event);
         container.appendChild(card);
     });
 }
-
 // 5. Модальное окно
 function openDetails(event) {
     currentEvent = event;
