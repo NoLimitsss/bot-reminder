@@ -71,13 +71,17 @@ function renderEvents(listId, eventArray) {
 // 5. Модальное окно
 function openDetails(event) {
     currentEvent = event;
+    
     document.getElementById('modal-title').innerText = event.name;
     document.getElementById('modal-date').innerText = event.date;
     document.getElementById('modal-time').innerText = event.time || '—';
-    document.getElementById('modal-notes').innerText = event.notes || 'Без примечаний';
+    
+    // Примечания в статичный блок
+    const notesBox = document.getElementById('modal-notes-display');
+    notesBox.innerText = event.notes || 'Без примечаний';
+    
     document.getElementById('modal-overlay').style.display = 'flex';
 }
-
 function closeModal() {
     document.getElementById('modal-overlay').style.display = 'none';
 }
@@ -159,14 +163,37 @@ function saveEvent() {
     // Здесь потом будешь отправлять данные в бота
 }
 
-// ==================== ТЕСТОВЫЕ ДАННЫЕ ====================
+// ==================== ГЕНЕРАТОР ТЕСТОВЫХ ДАННЫХ ====================
 const testEvents = [];
+
+const subjects = ["Встреча", "Звонок", "Дедлайн", "План", "Покупка", "Визит", "Обед", "Тренировка", "Презентация", "Конференция"];
+const descriptions = ["по обсуждению стратегии развития", "по поводу годового отчета", "для согласования новых макетов", "по вопросам технической поддержки"];
+
+function generateRandomText(length) {
+    let text = "";
+    while (text.length < length) {
+        text += "Это описание события, которое занимает много места для проверки скролла. ";
+    }
+    return text.substring(0, length);
+}
+
 for (let i = 1; i <= 20; i++) {
+    // Формируем название, стремясь к 50 символам
+    let rawTitle = `${subjects[i % subjects.length]} №${i}: ${descriptions[i % descriptions.length]}`;
+    // Если короче 50 — добиваем пробелами и точками, если длиннее — обрезаем
+    const name = rawTitle.length < 50 
+        ? rawTitle.padEnd(50, '.') 
+        : rawTitle.substring(0, 50);
+    
+    // Примечание: 500 символов
+    const notes = generateRandomText(500);
+    
     testEvents.push({
-        name: `Событие #${i}`,
+        name: name,
         date: `20.06.2026`,
         time: `${(i % 24).toString().padStart(2, '0')}:00`,
-        notes: `Детали события ${i}`
+        type: i % 2 === 0 ? 'recurring' : 'once',
+        notes: notes
     });
 }
 

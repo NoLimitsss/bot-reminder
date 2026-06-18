@@ -199,12 +199,12 @@ body {
 }
 
 .event-card {
-    background: var(--tg-theme-secondary-bg-color, var(--secondary));
+   background: var(--tg-theme-secondary-bg-color, var(--secondary));
     padding: 16px;
     border-radius: 12px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;        /* Чтобы выравнивалось по верху */
+    gap: 12px;
 }
 
 .empty-state {
@@ -233,6 +233,7 @@ body {
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
+/* Кнопки под модальным окном */
 .edit-btn, .delete-btn {
     flex: 1;
     padding: 12px;
@@ -252,6 +253,33 @@ body {
     color: #ff3b30;
     border: 1px solid #ff3b30;
 }
+
+/* ====================== МОДАЛЬНОЕ ОКНО — ПРИМЕЧАНИЯ ====================== */
+
+.notes-display-box {
+    max-height: 180px;                    /* Ограничиваем высоту */
+    overflow-y: auto;                     /* Включаем скролл при необходимости */
+    padding: 14px;
+    background: var(--tg-theme-secondary-bg-color, var(--secondary));
+    border-radius: 10px;
+    margin: 8px 0 16px 0;
+    line-height: 1.5;
+    font-size: 15px;
+    color: var(--tg-theme-text-color, var(--text));
+    
+    /* Скрываем скроллбар (красиво) */
+    scrollbar-width: none; 
+}
+
+.notes-display-box::-webkit-scrollbar {
+    display: none;
+}
+
+/* Убираем старую версию примечаний */
+#modal-notes {
+    display: none;   /* временно скрываем, если используем новый блок */
+}
+
 
 /* Скрытые поля дат */
 .hidden-input {
@@ -354,12 +382,14 @@ body {
 
 /* Стиль для таймеров событий */
 .event-timer {
-    background: var(--tg-theme-secondary-bg-color); /* Полупрозрачный фон */
+    background: var(--tg-theme-secondary-bg-color);
     padding: 4px 8px;
     border-radius: 8px;
     font-size: 11px;
-    color: var(--tg-theme-button-color); /* Цвет кнопки для акцента */
+    color: var(--tg-theme-button-color);
     border: 1px solid var(--tg-theme-button-color);
     font-weight: bold;
     white-space: nowrap;
+    flex-shrink: 0;
+    align-self: center;
 }
