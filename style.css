@@ -430,10 +430,11 @@ body {
     flex: 1;
     padding: 12px;
     border-radius: 12px;
-    border: 1px solid var(--tg-theme-hint-color, var(--hint));
-    background: var(--tg-theme-secondary-bg-color, var(--secondary));
-    color: var(--tg-theme-text-color, var(--text));
+    border: none;
+    background: var(--tg-theme-secondary-bg-color, #2c2c2e);
+    color: var(--tg-theme-text-color, #ffffff);
     font-size: 14px;
     outline: none;
     text-align: center;
+    appearance: none; /* Убирает системную стрелочку */
 }
