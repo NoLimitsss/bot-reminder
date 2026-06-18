@@ -56,15 +56,24 @@ function renderEvents(listId, eventArray) {
         const timeLeft = getTimeRemaining(event.date, event.time);
         const card = document.createElement('div');
         card.className = 'event-card';
+        
+        // Название события теперь на всю ширину, инфо — строкой ниже
         card.innerHTML = `
-            <div style="margin-right: 15px; color: var(--tg-theme-hint-color);">#${index + 1}</div>
-            <div style="flex-grow: 1;">
-                <strong>${event.name}</strong><br>
-                <small>📅 ${event.date} | ⏰ ${event.time || '—'}</small>
+            <div style="width: 100%;">
+                <div class="event-name" style="margin-bottom: 6px; font-weight: 600;">
+                    ${event.name}
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; color: var(--tg-theme-hint-color);">
+                    <small>📅 ${event.date} | ⏰ ${event.time || '—'}</small>
+                    <div class="event-timer" style="font-weight: 600; color: var(--tg-theme-button-color);">
+                        ${timeLeft}
+                    </div>
+                </div>
             </div>
-            <div class="event-timer">${timeLeft}</div>
         `;
-        card.onclick = () => openDetails(event);
+        
+        // Клик открывает модалку с деталями
+        card.onclick = () => openDetails(event); 
         container.appendChild(card);
     });
 }

@@ -199,12 +199,21 @@ body {
 }
 
 .event-card {
-   background: var(--tg-theme-secondary-bg-color, var(--secondary));
-    padding: 16px;
-    border-radius: 12px;
     display: flex;
-    align-items: flex-start;        /* Чтобы выравнивалось по верху */
-    gap: 12px;
+    padding: 12px;
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+
+.event-name {
+    font-size: 16px;
+    font-weight: 600;
+    /* Убираем ограничение, если вдруг было, 
+       чтобы заголовок занял всю строку */
+    width: 100%; 
 }
 
 .empty-state {
@@ -385,6 +394,7 @@ body {
     overflow-y: auto;     /* Скролл появится только при большом тексте */
     flex-shrink: 0;       /* Запрещает элементу сжиматься при нехватке места */
 }
+
 
 
 /* Стиль для таймеров событий */
