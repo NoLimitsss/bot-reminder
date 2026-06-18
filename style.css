@@ -256,23 +256,30 @@ body {
 
 /* ====================== МОДАЛЬНОЕ ОКНО — ПРИМЕЧАНИЯ ====================== */
 
+/* 1. Прячем скроллбар везде, где он нам мешает */
 .notes-display-box {
-    max-height: 180px;                    /* Ограничиваем высоту */
-    overflow-y: auto;                     /* Включаем скролл при необходимости */
-    padding: 14px;
-    background: var(--tg-theme-secondary-bg-color, var(--secondary));
-    border-radius: 10px;
-    margin: 8px 0 16px 0;
-    line-height: 1.5;
-    font-size: 15px;
-    color: var(--tg-theme-text-color, var(--text));
-    
-    /* Скрываем скроллбар (красиво) */
-    scrollbar-width: none; 
+    scrollbar-width: none; /* Для Firefox */
 }
 
 .notes-display-box::-webkit-scrollbar {
-    display: none;
+    display: none; /* Для Chrome, Safari, Telegram WebApp */
+}
+
+/* 2. Добавляем "Премиальный" стиль */
+.notes-display-box {
+    max-height: 180px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch; /* Инерция */
+    
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    color: var(--tg-theme-hint-color, #a0a0a0);
+    
+    /* Маска, которая "мягко" обрезает текст, избавляя от чувства "упирания" */
+    mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
 }
 
 /* Убираем старую версию примечаний */
