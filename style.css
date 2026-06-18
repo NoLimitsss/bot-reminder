@@ -350,3 +350,14 @@ body {
     overflow-y: auto;     /* Скролл появится только при большом тексте */
     flex-shrink: 0;       /* Запрещает элементу сжиматься при нехватке места */
 }
+
+
+/* Стиль для таймеров событий */
+.event-timer {
+    text-align: right;
+    font-size: 12px;
+    color: var(--tg-theme-link-color);
+    font-weight: bold;
+    min-width: 65px; /* фиксированная ширина, чтобы таймеры не "прыгали" */
+    margin-left: 10px;
+}

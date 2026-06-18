@@ -53,14 +53,16 @@ function renderEvents(listId, eventArray) {
     }
 
     eventArray.forEach((event, index) => {
+        const timeLeft = getTimeRemaining(event.date, event.time);
         const card = document.createElement('div');
         card.className = 'event-card';
         card.innerHTML = `
             <div style="margin-right: 15px; color: var(--tg-theme-hint-color);">#${index + 1}</div>
             <div style="flex-grow: 1;">
                 <strong>${event.name}</strong><br>
-                <small>📅 ${event.date} | ⏰ ${event.time}</small>
+                <small>📅 ${event.date} | ⏰ ${event.time || '—'}</small>
             </div>
+            <div class="event-timer">${timeLeft}</div>
         `;
         card.onclick = () => openDetails(event);
         container.appendChild(card);
@@ -248,4 +250,37 @@ if (notesField) {
             }
         }, 100);
     });
+}
+
+
+
+// таймеры до ближайших 3 событий
+function getTimeRemaining(eventDate, eventTime) {
+    const now = new Date();
+    const [d, m, y] = eventDate.split('.');
+    const target = new Date(`${y}-${m}-${d}T${eventTime || '00:00'}:00`);
+    
+    let diff = target - now;
+    if (diff <= 0) return "Уже наступило";
+
+    const msInMinute = 60 * 1000;
+    const msInHour = 60 * msInMinute;
+    const msInDay = 24 * msInHour;
+    const msInMonth = 30 * msInDay;
+
+    const months = Math.floor(diff / msInMonth);
+    diff %= msInMonth;
+    const days = Math.floor(diff / msInDay);
+    diff %= msInDay;
+    const hours = Math.floor(diff / msInHour);
+    diff %= msInHour;
+    const minutes = Math.floor(diff / msInMinute);
+
+    let result = [];
+    if (months > 0) result.push(`${months} мес.`);
+    if (days > 0) result.push(`${days} дн.`);
+    if (hours > 0) result.push(`${hours} ч.`);
+    if (minutes > 0) result.push(`${minutes} мин.`);
+
+    return result.length > 0 ? result.join(' ') : "Скоро";
 }
