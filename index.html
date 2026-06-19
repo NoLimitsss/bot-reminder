@@ -48,11 +48,12 @@
         <h1>Добавить событие</h1>
         <input type="text" id="event-name" placeholder="Название события (не более 50 символов)" class="input-field" maxlength="50">
         <div class="type-selector-wrapper">
-            <div class="type-option" onclick="selectType(this, 'once')">Одноразовое</div>
-            <div class="type-option" onclick="selectType(this, 'recurring')">Повторяющееся</div>
+            <div class="type-option" onclick="selectType(this, 'once')">Разовое</div>
+            <div class="type-option" onclick="selectType(this, 'monthly')">Каждые X месяцев</div>
+            <div class="type-option" onclick="selectType(this, 'yearly')">Ежегодное</div>
         </div>
         <div class="date-picker-wrapper">
-            <label>Дата события:</label>
+            <label id="date-picker-label">Дата события:</label>
             <div class="custom-date-container">
                 <select id="day-select" class="custom-select"></select>
                 <select id="month-select" class="custom-select"></select>
@@ -63,7 +64,7 @@
             <input type="time" id="real-time" class="hidden-input">
             <div id="time-btn" class="custom-date-btn" onclick="pickTime()">⏰ Выбрать время</div>
         </div>
-        <textarea id="event-notes" placeholder="Примечания (не более 500)" class="input-field" rows="3" maxlength="500"></textarea>
+        <textarea id="event-notes" placeholder="Примечания (не более 500 символов)" class="input-field" rows="3" maxlength="500"></textarea>
         <button class="save-btn" onclick="saveEvent()">Сохранить</button>
     </div>
 

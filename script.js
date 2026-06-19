@@ -249,64 +249,98 @@ function getTimeRemaining(eventDate, eventTime) {
 
 
 // Полностью замени твою текущую initDatePickers на эту:
-function initDatePickers() {
+// 1. Пульт управления (Диспетчер)
+function updatePickerMode(mode) {
+    currentAddMode = mode;
+    
+    // Очищаем селекторы перед каждым переключением
     const daySelect = document.getElementById('day-select');
     const monthSelect = document.getElementById('month-select');
     const yearSelect = document.getElementById('year-select');
-
-    // Если этих id нет в HTML, скрипт выйдет, чтобы не сломать часы
-    if (!daySelect || !monthSelect || !yearSelect) {
-        console.error("ОШИБКА: Селекторы даты не найдены в HTML!");
-        return;
-    }
-
-    // 1. Очистка
-    daySelect.innerHTML = '<option value="">--</option>';
-    monthSelect.innerHTML = '<option value="">--</option>';
-    yearSelect.innerHTML = '<option value="">--</option>';
-
-    // 2. Заполнение месяцев
-    const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
-    months.forEach((m, idx) => {
-        let val = (idx + 1).toString().padStart(2, '0');
-        monthSelect.add(new Option(m, val));
-    });
-
-    // 3. Заполнение лет
-    for (let i = 1900; i <= 2100; i++) {
-        yearSelect.add(new Option(i, i));
-    }
-
-    // 4. Функция обновления дней
-    function updateDays() {
-        const year = parseInt(yearSelect.value);
-        const month = parseInt(monthSelect.value);
-        
-        if (!year || !month) {
-            daySelect.innerHTML = '<option value="">--</option>';
-            return;
-        }
-
-        const daysInMonth = new Date(year, month, 0).getDate();
-        const currentDay = daySelect.value;
-        
-        daySelect.innerHTML = '<option value="">--</option>';
-        for (let i = 1; i <= daysInMonth; i++) {
-            let val = i.toString().padStart(2, '0');
-            daySelect.add(new Option(val, val));
-        }
-        
-        if (currentDay && parseInt(currentDay) <= daysInMonth) {
-            daySelect.value = currentDay;
-        }
-    }
-
-    // 5. Вешаем события
-    monthSelect.addEventListener('change', updateDays);
-    yearSelect.addEventListener('change', updateDays);
     
-    console.log("Селекторы даты успешно инициализированы!");
+    daySelect.innerHTML = '<option value="">День</option>';
+    monthSelect.innerHTML = '<option value="">Мес.</option>';
+    yearSelect.innerHTML = '<option value="">Год</option>';
+
+    // Переключаем "моторчики"
+    if (mode === 'once')    initOnceMode();
+    if (mode === 'monthly') initMonthlyMode();
+    if (mode === 'yearly')  initYearlyMode();
 }
 
-// Запускаем при загрузке DOM
-document.addEventListener('DOMContentLoaded', initDatePickers);
+// 2. Моторчик для "Разового" (Весь код ОДНОГО режима)
+function initOnceMode() {
+  const daySelect = document.getElementById('day-select');
+    const monthSelect = document.getElementById('month-select');
+    const yearSelect = document.getElementById('year-select');
+    const label = document.getElementById('date-picker-label');
+
+    label.innerText = 'Выберите дату:';
+
+    // 1. Заполнение селекторов
+    for (let i = 1; i <= 31; i++) daySelect.add(new Option(i, i.toString().padStart(2, '0')));
+    
+    const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+    months.forEach((m, idx) => monthSelect.add(new Option(m, (idx + 1).toString().padStart(2, '0'))));
+    
+    const currentYear = new Date().getFullYear();
+    for (let i = currentYear; i <= 2100; i++) yearSelect.add(new Option(i, i));
+
+    // 2. Логика проверки (валидатор)
+    const validate = () => {
+        let y = parseInt(yearSelect.value);
+        let m = parseInt(monthSelect.value);
+        let d = parseInt(daySelect.value);
+        if (!y || !m || !d) return;
+
+        // А) Коррекция дней (защита от 31-го числа в коротких месяцах)
+        const daysInMonth = new Date(y, m, 0).getDate();
+        if (d > daysInMonth) {
+            d = daysInMonth;
+            daySelect.value = d.toString().padStart(2, '0');
+        }
+
+        // Б) Валидация прошлого
+        const now = new Date();
+        const yNow = now.getFullYear();
+        const mNow = now.getMonth() + 1;
+        const dNow = now.getDate();
+
+        if (y < yNow || (y === yNow && m < mNow) || (y === yNow && m === mNow && d < dNow)) {
+            alert("Дата уже прошла! Выберите будущую дату.");
+            yearSelect.value = ""; // Сбрасываем год, чтобы вынудить перевыбор
+        }
+    };
+
+    // 3. Подключение событий
+    [daySelect, monthSelect, yearSelect].forEach(el => el.addEventListener('change', validate));
+}
+
+// 3. Моторчик для "Месячного"
+function initMonthlyMode() {
+    // Тут только логика для МЕСЯЧНОГО:
+    // - Заполнение "Пер." вместо года
+    // - Своя логика
+}
+
+// 4. Моторчик для "Ежегодного"
+function initYearlyMode() {
+    // Тут только логика для ЕЖЕГОДНОГО:
+    // - Заполнение годов с 2000
+    // - Валидация дней
+}
+
+// Привязываем к кнопкам переключения
+function selectType(el, type) {
+    document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('active'));
+    el.classList.add('active');
+    updatePickerMode(type);
+}
+
+// Инициализация при старте
+document.addEventListener('DOMContentLoaded', () => {
+    updatePickerMode('once');
+    // Установим класс active для первой кнопки вручную (если нужно)
+    const firstBtn = document.querySelector('.type-option');
+    if (firstBtn) firstBtn.classList.add('active');
+});
