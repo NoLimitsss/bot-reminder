@@ -438,3 +438,21 @@ body {
     text-align: center;
     appearance: none; /* Убирает системную стрелочку */
 }
+
+/* подсвечивание ячеек выбора даты */
+
+/* Базовое состояние для всех селекторов */
+.custom-select {
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Твоя "тонкая белая" рамка */
+    transition: border-color 0.2s ease;
+}
+
+/* Состояние ошибки */
+.custom-select.error {
+    border: 1px solid #ff3b30 !important;
+}
+
+/* Состояние, когда значение выбрано (активно) */
+.custom-select.filled {
+    border: 1px solid rgba(255, 255, 255, 0.6);
+}

@@ -94,6 +94,7 @@ function openDetails(event) {
     notesBox.innerText = event.notes || 'Без примечаний';
     document.getElementById('modal-overlay').style.display = 'flex';
 }
+
 function closeModal() {
     document.getElementById('modal-overlay').style.display = 'none';
 }
@@ -107,14 +108,12 @@ function editEvent() {
     document.getElementById('event-name').value = currentEvent.name;
     document.getElementById('event-notes').value = currentEvent.notes || '';
     
-    // Работаем с новыми селекторами
     const [d, m, y] = currentEvent.date.split('.');
     document.getElementById('day-select').value = d;
     document.getElementById('month-select').value = m;
     document.getElementById('year-select').value = y;
     
     document.getElementById('real-time').value = currentEvent.time || '';
-    document.getElementById('time-btn').innerText = '⏰ ' + (currentEvent.time || 'Выбрать время');
 }
 
 // Удаление
@@ -126,15 +125,12 @@ function deleteEvent() {
     }
 }
 
-// ВЫБОР ВРЕМЕНИ
+// ==================== ВЫБОР ВРЕМЕНИ ====================
 function pickTime() {
     const input = document.getElementById('real-time');
     input.focus();
-    if (input.showPicker) {
-        input.showPicker();
-    } else {
-        input.click();
-    }
+    if (input.showPicker) input.showPicker();
+    else input.click();
 }
 
 document.getElementById('real-time').addEventListener('change', function() {
@@ -142,6 +138,184 @@ document.getElementById('real-time').addEventListener('change', function() {
         document.getElementById('time-btn').innerText = `⏰ ${this.value}`;
     }
 });
+
+
+// ==================== ВЫБОР ДАТЫ (РЕЖИМЫ) ====================
+
+let currentAddMode = 'once';
+
+function updatePickerMode(mode) {
+    currentAddMode = mode;
+    
+    const daySelect   = document.getElementById('day-select');
+    const monthSelect = document.getElementById('month-select');
+    const yearSelect  = document.getElementById('year-select');
+
+    if (daySelect)   daySelect.innerHTML = '';
+    if (monthSelect) monthSelect.innerHTML = '';
+    if (yearSelect)  yearSelect.innerHTML = '';
+
+    if (mode === 'once') {
+        setTimeout(initOnceMode, 10); // небольшая задержка, чтобы DOM был готов
+    } else if (mode === 'monthly') {
+        initMonthlyMode();
+    } else if (mode === 'yearly') {
+        initYearlyMode();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+function initOnceMode() {
+    const daySelect = document.getElementById('day-select');
+    const monthSelect = document.getElementById('month-select');
+    const yearSelect = document.getElementById('year-select');
+
+    if (!daySelect || !monthSelect || !yearSelect) return;
+
+    document.getElementById('date-picker-label').innerText = 'Дата события:';
+    const now = new Date();
+    const curY = now.getFullYear();
+    const curM = now.getMonth() + 1;
+
+    // 1. Очистка
+    [daySelect, monthSelect, yearSelect].forEach(el => { 
+        el.innerHTML = ''; 
+        el.className = 'custom-select'; 
+    });
+
+    // 2. Заполняем годы
+    yearSelect.innerHTML = '<option value="">Год</option>';
+    for (let y = curY; y <= 2100; y++) yearSelect.add(new Option(y, y));
+
+    // 3. Утилита управления статусом
+    const setStatus = (el, isError) => {
+        // Используем requestAnimationFrame, чтобы стили обновились гарантированно после смены value
+        requestAnimationFrame(() => {
+            if (isError) {
+                el.classList.add('error');
+                el.classList.remove('filled');
+            } else if (el.value !== "") {
+                el.classList.remove('error');
+                el.classList.add('filled');
+            } else {
+                el.classList.remove('error', 'filled');
+            }
+        });
+    };
+
+    // 4. Обновление списка месяцев
+    function updateMonthList() {
+        const y = parseInt(yearSelect.value);
+        const savedM = monthSelect.value;
+        monthSelect.innerHTML = '<option value="">Месяц</option>';
+        const months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+        const startMonth = (y === curY) ? curM : 1;
+        for (let i = startMonth; i <= 12; i++) {
+            monthSelect.add(new Option(months[i - 1], i.toString().padStart(2, '0')));
+        }
+        if (savedM && parseInt(savedM) >= startMonth) monthSelect.value = savedM;
+    }
+
+    // 5. Единый движок валидации
+    function validate() {
+            const m = parseInt(monthSelect.value, 10);
+            const y = parseInt(yearSelect.value, 10);
+            const d = parseInt(daySelect.value, 10);
+
+        // 1. ПРОВЕРКА ПРОШЛОГО (Валидация года/месяца)
+            if (y === curY && !isNaN(m) && m < curM){
+
+
+                setStatus(monthSelect, true);
+                setStatus(daySelect, true);
+
+            }
+                
+        // 2. ВАЛИДАЦИЯ ДНЕЙ (только если месяц прошел проверку выше)
+        if (m) {
+            const checkYear = y || curY;
+            const daysInMonth = new Date(checkYear, m, 0).getDate();
+            
+            // Если день был выбран и он больше максимума
+            if (d > daysInMonth) {
+                daySelect.value = "";
+                setStatus(daySelect, true); // День красный
+            } else {
+                setStatus(daySelect, false); // День нормальный
+            }
+
+            // Перестройка списка дней
+            const savedD = daySelect.value;
+            daySelect.innerHTML = '<option value="">День</option>';
+            for (let i = 1; i <= daysInMonth; i++) {
+                daySelect.add(new Option(i, i.toString().padStart(2, '0')));
+            }
+            if (savedD && parseInt(savedD) <= daysInMonth) daySelect.value = savedD;
+        }
+
+        // 3. ФИНАЛЬНЫЙ ПРОХОД (безопасное обновление filled)
+        [daySelect, monthSelect, yearSelect].forEach(el => {
+            // Если у элемента УЖЕ есть ошибка, мы его НЕ ТРОГАЕМ
+            if (el.classList.contains('error')) return;
+
+            // Если поле заполнено и нет ошибки — ставим filled
+            if (el.value !== "") {
+                el.classList.add('filled');
+            } else {
+                el.classList.remove('filled');
+            }
+        });
+    }
+
+    // Слушатели
+    yearSelect.addEventListener('change', () => { updateMonthList(); validate(); });
+    monthSelect.addEventListener('change', validate);
+    daySelect.addEventListener('change', validate);
+
+    // Инициализация (сначала дни, потом месяцы, потом валидация)
+    daySelect.innerHTML = '<option value="">День</option>';
+    for (let i = 1; i <= 31; i++) daySelect.add(new Option(i, i.toString().padStart(2, '0')));
+    
+    updateMonthList();
+    validate();
+}
+
+
+
+
+
+
+
+
+// Заглушки
+function initMonthlyMode() {
+    document.getElementById('date-picker-label').innerText = 'Повторять каждый месяц:';
+}
+
+function initYearlyMode() {
+    document.getElementById('date-picker-label').innerText = 'Повторять каждый год:';
+}
+
+function selectType(el, type) {
+    document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('active'));
+    el.classList.add('active');
+    updatePickerMode(type);
+}
+
+// Переключение типа события
+function selectType(el, type) {
+    document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('active'));
+    el.classList.add('active');
+    updatePickerMode(type);
+}
 
 // Сохранение события
 function saveEvent() {
@@ -156,7 +330,6 @@ function saveEvent() {
         return;
     }
     
-    // Проверка, что выбрано ВСЁ
     if (!d || !m || !y) {
         alert('Пожалуйста, выберите полную дату!');
         return;
@@ -165,7 +338,7 @@ function saveEvent() {
     alert(`✅ Событие сохранено!\n\nНазвание: ${name}\nДата: ${d}.${m}.${y}\nВремя: ${time}`);
 }
 
-// ГЕНЕРАТОР ТЕСТОВЫХ ДАННЫХ
+// ==================== ТЕСТОВЫЕ ДАННЫЕ ====================
 const testEvents = [];
 const subjects = ["Встреча", "Звонок", "Дедлайн", "План", "Покупка", "Визит", "Обед", "Тренировка", "Презентация", "Конференция"];
 
@@ -186,7 +359,7 @@ for (let i = 1; i <= 20; i++) {
     });
 }
 
-// ЧАСЫ
+// ==================== ЧАСЫ ====================
 function updateClock() {
     const now = new Date();
     const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
@@ -196,7 +369,7 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// FAQ
+// ==================== FAQ ====================
 function renderFaq() {
     const faqList = document.getElementById('faq-list');
     if (!faqList) return;
@@ -215,20 +388,18 @@ function toggleFaq(index) {
     answer.style.display = isVisible ? 'none' : 'block';
     icon.innerText = isVisible ? '▼' : '▲';
 }
-document.addEventListener('DOMContentLoaded', renderFaq);
 
-function selectType(el, type) {
-    document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('active'));
-    el.classList.add('active');
-}
-
+// ==================== ПРОЧЕЕ ====================
 const notesField = document.getElementById('event-notes');
 if (notesField) {
     notesField.addEventListener('focus', function() {
         setTimeout(() => this.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
     });
     notesField.addEventListener('blur', function() {
-        setTimeout(() => { const s = document.getElementById('add-screen'); if(s) s.scrollTo({ top: 0, behavior: 'smooth' }); }, 100);
+        setTimeout(() => { 
+            const s = document.getElementById('add-screen'); 
+            if(s) s.scrollTo({ top: 0, behavior: 'smooth' }); 
+        }, 100);
     });
 }
 
@@ -238,109 +409,17 @@ function getTimeRemaining(eventDate, eventTime) {
     const target = new Date(`${y}-${m}-${d}T${eventTime || '00:00'}:00`);
     let diff = target - now;
     if (diff <= 0) return "Уже наступило";
-    const msInMinute = 60 * 1000;
-    const msInHour = 60 * msInMinute;
-    const msInDay = 24 * msInHour;
-    const days = Math.floor(diff / msInDay);
-    diff %= msInDay;
-    const hours = Math.floor(diff / msInHour);
+    const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+    const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
     return `${days > 0 ? days + ' дн. ' : ''}${hours} ч.`;
 }
 
-
-// Полностью замени твою текущую initDatePickers на эту:
-// 1. Пульт управления (Диспетчер)
-function updatePickerMode(mode) {
-    currentAddMode = mode;
-    
-    // Очищаем селекторы перед каждым переключением
-    const daySelect = document.getElementById('day-select');
-    const monthSelect = document.getElementById('month-select');
-    const yearSelect = document.getElementById('year-select');
-    
-    daySelect.innerHTML = '<option value="">День</option>';
-    monthSelect.innerHTML = '<option value="">Мес.</option>';
-    yearSelect.innerHTML = '<option value="">Год</option>';
-
-    // Переключаем "моторчики"
-    if (mode === 'once')    initOnceMode();
-    if (mode === 'monthly') initMonthlyMode();
-    if (mode === 'yearly')  initYearlyMode();
-}
-
-// 2. Моторчик для "Разового" (Весь код ОДНОГО режима)
-function initOnceMode() {
-  const daySelect = document.getElementById('day-select');
-    const monthSelect = document.getElementById('month-select');
-    const yearSelect = document.getElementById('year-select');
-    const label = document.getElementById('date-picker-label');
-
-    label.innerText = 'Выберите дату:';
-
-    // 1. Заполнение селекторов
-    for (let i = 1; i <= 31; i++) daySelect.add(new Option(i, i.toString().padStart(2, '0')));
-    
-    const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
-    months.forEach((m, idx) => monthSelect.add(new Option(m, (idx + 1).toString().padStart(2, '0'))));
-    
-    const currentYear = new Date().getFullYear();
-    for (let i = currentYear; i <= 2100; i++) yearSelect.add(new Option(i, i));
-
-    // 2. Логика проверки (валидатор)
-    const validate = () => {
-        let y = parseInt(yearSelect.value);
-        let m = parseInt(monthSelect.value);
-        let d = parseInt(daySelect.value);
-        if (!y || !m || !d) return;
-
-        // А) Коррекция дней (защита от 31-го числа в коротких месяцах)
-        const daysInMonth = new Date(y, m, 0).getDate();
-        if (d > daysInMonth) {
-            d = daysInMonth;
-            daySelect.value = d.toString().padStart(2, '0');
-        }
-
-        // Б) Валидация прошлого
-        const now = new Date();
-        const yNow = now.getFullYear();
-        const mNow = now.getMonth() + 1;
-        const dNow = now.getDate();
-
-        if (y < yNow || (y === yNow && m < mNow) || (y === yNow && m === mNow && d < dNow)) {
-            alert("Дата уже прошла! Выберите будущую дату.");
-            yearSelect.value = ""; // Сбрасываем год, чтобы вынудить перевыбор
-        }
-    };
-
-    // 3. Подключение событий
-    [daySelect, monthSelect, yearSelect].forEach(el => el.addEventListener('change', validate));
-}
-
-// 3. Моторчик для "Месячного"
-function initMonthlyMode() {
-    // Тут только логика для МЕСЯЧНОГО:
-    // - Заполнение "Пер." вместо года
-    // - Своя логика
-}
-
-// 4. Моторчик для "Ежегодного"
-function initYearlyMode() {
-    // Тут только логика для ЕЖЕГОДНОГО:
-    // - Заполнение годов с 2000
-    // - Валидация дней
-}
-
-// Привязываем к кнопкам переключения
-function selectType(el, type) {
-    document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('active'));
-    el.classList.add('active');
-    updatePickerMode(type);
-}
-
-// Инициализация при старте
+// ==================== ИНИЦИАЛИЗАЦИЯ ====================
 document.addEventListener('DOMContentLoaded', () => {
-    updatePickerMode('once');
-    // Установим класс active для первой кнопки вручную (если нужно)
-    const firstBtn = document.querySelector('.type-option');
-    if (firstBtn) firstBtn.classList.add('active');
+    renderFaq();
+    
+    const firstOption = document.querySelector('.type-option');
+    if (firstOption) firstOption.classList.add('active');
+    
+    updatePickerMode('once');   // Запускаем режим даты
 });
