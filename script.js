@@ -290,7 +290,7 @@ function initOnceMode() {
     const yearSelect = document.getElementById('year-select');
     if (!daySelect || !monthSelect || !yearSelect) return;
 
-    document.getElementById('date-picker-label').innerText = 'Разовое событие. Укажите дату события:';
+    document.getElementById('date-picker-label').innerText = 'Укажите дату события:';
     yearSelect.style.display = 'block';
 
     const now = new Date();
@@ -395,7 +395,7 @@ function initOnceMode() {
    to hold the period.
    ============================================================ */
 function initMonthlyMode() {
-    document.getElementById('date-picker-label').innerText = 'Циклическое событие. Укажите дату и период:';
+    document.getElementById('date-picker-label').innerText = 'Укажите дату и период события:';
 
     const daySelect = document.getElementById('day-select');
     const monthSelect = document.getElementById('month-select');
@@ -451,7 +451,7 @@ function initMonthlyMode() {
    reference / start year, defaulting to 2000).
    ============================================================ */
 function initYearlyMode() {
-    document.getElementById('date-picker-label').innerText = 'Ежегодное событие. Укажите дату события:';
+    document.getElementById('date-picker-label').innerText = 'Укажите дату события (год опцион.):';
 
     const daySelect = document.getElementById('day-select');
     const monthSelect = document.getElementById('month-select');
