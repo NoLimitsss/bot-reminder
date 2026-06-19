@@ -2,18 +2,25 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="style.css">
     <title>Планировщик</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <!-- ============================================================
+         SPLASH SCREEN
+         ============================================================ -->
     <div id="splash-screen">
         <h1 class="splash-logo">Мой планировщик</h1>
     </div>
 
+
+    <!-- ============================================================
+         MAIN SCREEN
+         ============================================================ -->
     <div id="main-screen">
         <h1>Здравствуйте, <span id="username">гость</span>!</h1>
-        
+
         <div class="grid">
             <button class="menu-item" onclick="showScreen('add')">
                 <span style="font-size: 24px;">➕</span> Добавить событие
@@ -43,15 +50,25 @@
         </footer>
     </div>
 
+
+    <!-- ============================================================
+         ADD / EDIT EVENT SCREEN
+         ============================================================ -->
     <div id="add-screen" class="screen" style="display: none;">
         <button class="back-btn" onclick="showScreen('main')">← Назад</button>
         <h1>Добавить событие</h1>
-        <input type="text" id="event-name" placeholder="Название события (не более 50 символов)" class="input-field" maxlength="50">
+
+        <input type="text" id="event-name" class="input-field"
+               placeholder="Название события (не более 50 символов)" maxlength="50">
+
+        <!-- Event type: one-time / recurring monthly / recurring yearly -->
         <div class="type-selector-wrapper">
             <div class="type-option" onclick="selectType(this, 'once')">Разовое</div>
             <div class="type-option" onclick="selectType(this, 'monthly')">Цикл</div>
             <div class="type-option" onclick="selectType(this, 'yearly')">Ежегод.</div>
         </div>
+
+        <!-- Date picker: day / month / year (or "period" for monthly mode) -->
         <div class="date-picker-wrapper">
             <label id="date-picker-label">Дата события:</label>
             <div class="custom-date-container">
@@ -60,52 +77,77 @@
                 <select id="year-select" class="custom-select"></select>
             </div>
         </div>
+
+        <!-- Time picker (native <input type="time"> hidden behind a styled button) -->
         <div class="date-picker-wrapper">
             <input type="time" id="real-time" class="hidden-input">
             <div id="time-btn" class="custom-date-btn" onclick="pickTime()">⏰ Выбрать время</div>
         </div>
-        <textarea id="event-notes" placeholder="Примечания (не более 500 символов)" class="input-field" rows="3" maxlength="500"></textarea>
+
+        <textarea id="event-notes" class="input-field" rows="3" maxlength="500"
+                  placeholder="Примечания (не более 500 символов)"></textarea>
+
         <button class="save-btn" onclick="saveEvent()">Сохранить</button>
     </div>
 
+
+    <!-- ============================================================
+         UPCOMING EVENTS SCREEN
+         ============================================================ -->
     <div id="upcoming-screen" class="screen" style="display: none;">
         <button class="back-btn" onclick="showScreen('main')">← Назад</button>
         <h2>📅 Ближайшие события</h2>
-        <div id="upcoming-list" class="event-container"></div> 
+        <div id="upcoming-list" class="event-container"></div>
     </div>
 
+
+    <!-- ============================================================
+         ALL EVENTS SCREEN
+         ============================================================ -->
     <div id="all-screen" class="screen" style="display: none;">
         <button class="back-btn" onclick="showScreen('main')">← Назад</button>
         <h2>📂 Все события</h2>
-        <div id="all-list" class="event-container"></div> 
+        <div id="all-list" class="event-container"></div>
     </div>
 
+
+    <!-- ============================================================
+         FAQ SCREEN
+         ============================================================ -->
     <div id="faq-screen" class="screen" style="display: none;">
         <button class="back-btn" onclick="showScreen('main')">← Назад</button>
         <h1>Часто задаваемые вопросы</h1>
         <div id="faq-list"></div>
     </div>
 
-   <div id="modal-overlay" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-        <button class="back-btn" onclick="closeModal()">← Назад</button>
-        <h2 id="modal-title"></h2>
-        
-        <p><strong>Дата:</strong> <span id="modal-date"></span></p>
-        <p><strong>Время:</strong> <span id="modal-time"></span></p>
-        
-        <p><strong>Примечания:</strong></p>
-        <div id="modal-notes-display" class="notes-display-box"></div>
-        
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button class="edit-btn" onclick="editEvent()">Редактировать</button>
-            <button class="delete-btn" onclick="deleteEvent()">Удалить</button>
+
+    <!-- ============================================================
+         EVENT DETAILS MODAL
+         ============================================================ -->
+    <div id="modal-overlay" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <button class="back-btn" onclick="closeModal()">← Назад</button>
+            <h2 id="modal-title"></h2>
+
+            <p><strong>Дата:</strong> <span id="modal-date"></span></p>
+            <p><strong>Время:</strong> <span id="modal-time"></span></p>
+
+            <p><strong>Примечания:</strong></p>
+            <div id="modal-notes-display" class="notes-display-box"></div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="edit-btn" onclick="editEvent()">Редактировать</button>
+                <button class="delete-btn" onclick="deleteEvent()">Удалить</button>
+            </div>
         </div>
     </div>
-    </div>
 
+
+    <!-- ============================================================
+         SCRIPTS
+         ============================================================ -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="script.js"></script>
     <script src="faq-data.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
