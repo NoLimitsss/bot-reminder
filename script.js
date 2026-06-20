@@ -3,7 +3,7 @@
    ============================================================
    Sections:
      1. Telegram WebApp setup
-     2. Constants & test data
+     2. Constants
      3. App state
      4. Screen navigation
      5. Splash screen
@@ -95,7 +95,7 @@ function showAccessDenied() {
 
 
 /* ============================================================
-   2. CONSTANTS & TEST DATA
+   2. CONSTANTS
    ============================================================ */
 const MONTHS_FULL = [
     'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
@@ -111,90 +111,109 @@ const WEEKDAYS = ['Воскресенье', 'Понедельник', 'Втор�
    2.5 EVENT STORE (data layer)
    ============================================================
    Every read/write to event data goes through this object, and
-   nowhere else in the app. Today it persists to localStorage.
-   Later, swapping to a real backend means rewriting ONLY the
-   bodies of these methods (e.g. to use fetch()) — every other
-   part of the app (rendering, forms, buttons) stays untouched.
+   nowhere else in the app. It talks to the backend API over
+   fetch(); the rest of the app (rendering, forms, buttons) only
+   knows these five methods, all of which now return Promises.
 
-   Event shape (the single source of truth for what an event is):
+   API base + user id:
+   - API_BASE points at the backend (localhost in dev, the real
+     domain in production — auto-selected via isDevEnvironment()).
+   - Every request carries an X-User-Id header so the backend
+     returns/stores only THIS user's events. Outside Telegram
+     (local browser testing) there's no Telegram user, so we fall
+     back to DEV_USER_ID.
+
+   Event shape (single source of truth for what an event is):
    {
-     id:        string   — unique identifier
+     id:        number   — assigned by the backend
      name:      string
      type:      'once' | 'monthly' | 'yearly'
      day:       string   — '01'..'31'
      month:     string   — '01'..'12'
      year:      string|null  — only meaningful for 'once' / 'yearly'
      period:    string|null  — only meaningful for 'monthly' (repeat every N months)
-     time:      string   — 'HH:MM' or '—'
+     time:      string   — 'HH:MM' or '—'  (API uses null for "no time")
      important: boolean
      notes:     string
    }
    ============================================================ */
+const API_BASE = isDevEnvironment()
+    ? 'http://localhost:8000'
+    : 'https://your-api-domain';        // 👉 впиши боевой адрес API перед деплоем
+
+const DEV_USER_ID = 466153252;          // used only outside Telegram (local testing)
+
+function getUserId() {
+    const user = tg.initDataUnsafe && tg.initDataUnsafe.user;
+    return user ? user.id : DEV_USER_ID;
+}
+
 const EventStore = (() => {
-    const STORAGE_KEY = 'planner_events';
-
-    function readAll() {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            return raw ? JSON.parse(raw) : [];
-        } catch (err) {
-            console.error('EventStore: failed to read storage', err);
-            return [];
-        }
+    async function request(path, options = {}) {
+        const res = await fetch(API_BASE + path, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-User-Id': String(getUserId()),
+                ...(options.headers || {})
+            }
+        });
+        if (!res.ok) throw new Error(`API ${res.status} ${res.statusText}`);
+        return res.status === 204 ? null : res.json();
     }
 
-    function writeAll(events) {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
-            return true;
-        } catch (err) {
-            console.error('EventStore: failed to write storage', err);
-            return false;
-        }
+    // Backend → app shape (API sends null for "no time"; the app uses '—')
+    function fromApi(e) {
+        return { ...e, time: e.time || '—', notes: e.notes || '', important: !!e.important };
     }
 
-    function generateId() {
-        return `evt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    // App → backend shape (drop the sentinel '—', send real null)
+    function toApi(e) {
+        return {
+            name: e.name,
+            type: e.type,
+            day: e.day,
+            month: e.month,
+            year: e.year ?? null,
+            period: e.period ?? null,
+            time: (e.time && e.time !== '—') ? e.time : null,
+            important: !!e.important,
+            notes: e.notes || ''
+        };
     }
 
     return {
         // Returns all events, sorted by next occurrence (soonest first)
-        getAll() {
-            return readAll().sort((a, b) => getNextOccurrence(a) - getNextOccurrence(b));
+        async getAll() {
+            const events = (await request('/events')).map(fromApi);
+            return events.sort((a, b) => getNextOccurrence(a) - getNextOccurrence(b));
         },
 
         // Returns a single event by id, or null
-        getById(id) {
-            return readAll().find(e => e.id === id) || null;
+        async getById(id) {
+            const all = await this.getAll();
+            return all.find(e => e.id === id) || null;
         },
 
-        // Adds a new event, assigning it an id. Returns the saved event.
-        add(eventData) {
-            const events = readAll();
-            const newEvent = { ...eventData, id: generateId() };
-            events.push(newEvent);
-            writeAll(events);
-            return newEvent;
+        // Adds a new event. Returns the saved event (with its backend id).
+        async add(eventData) {
+            return fromApi(await request('/events', {
+                method: 'POST',
+                body: JSON.stringify(toApi(eventData))
+            }));
         },
 
-        // Updates an existing event by id. Returns the updated event, or null if not found.
-        update(id, eventData) {
-            const events = readAll();
-            const index = events.findIndex(e => e.id === id);
-            if (index === -1) return null;
-
-            events[index] = { ...eventData, id };
-            writeAll(events);
-            return events[index];
+        // Updates an existing event by id. Returns the updated event.
+        async update(id, eventData) {
+            return fromApi(await request(`/events/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(toApi(eventData))
+            }));
         },
 
-        // Deletes an event by id. Returns true if something was deleted.
-        delete(id) {
-            const events = readAll();
-            const filtered = events.filter(e => e.id !== id);
-            if (filtered.length === events.length) return false;
-
-            writeAll(filtered);
+        // Deletes an event by id. Returns true on success.
+        async delete(id) {
+            await request(`/events/${id}`, { method: 'DELETE' });
             return true;
         }
     };
@@ -268,14 +287,24 @@ function updateClock() {
    7. EVENT LIST RENDERING
    ============================================================ */
 // ----- "All events" screen: filter + sort/group, no per-card timer -----
-function renderAllEvents() {
+async function renderAllEvents() {
     const container = document.getElementById('all-list');
     if (!container) return;
 
     const filter = document.getElementById('all-filter').value; // all | once | monthly | yearly
     const sort = document.getElementById('all-sort').value;      // date | month
 
-    let events = EventStore.getAll(); // already sorted by next occurrence (soonest first)
+    container.innerHTML = '<div class="empty-state">Загрузка…</div>';
+
+    let events;
+    try {
+        events = await EventStore.getAll(); // sorted by next occurrence (soonest first)
+    } catch (err) {
+        console.error(err);
+        container.innerHTML = '<div class="empty-state">Не удалось загрузить события. Бэкенд недоступен.</div>';
+        return;
+    }
+
     if (filter !== 'all') events = events.filter(e => e.type === filter);
 
     container.innerHTML = '';
@@ -319,17 +348,28 @@ function renderGroupedByMonth(container, events) {
 }
 
 // ----- "Upcoming" screen: filter by type + time window, keep the timer -----
-function renderUpcoming() {
+async function renderUpcoming() {
     const container = document.getElementById('upcoming-list');
     if (!container) return;
 
     const filter = document.getElementById('upcoming-filter').value;       // all | once | monthly | yearly
     const days = parseInt(document.getElementById('upcoming-range').value, 10); // 7 | 14 | 30 | 60
 
+    container.innerHTML = '<div class="empty-state">Загрузка…</div>';
+
+    let all;
+    try {
+        all = await EventStore.getAll(); // sorted soonest-first
+    } catch (err) {
+        console.error(err);
+        container.innerHTML = '<div class="empty-state">Не удалось загрузить события. Бэкенд недоступен.</div>';
+        return;
+    }
+
     const now = new Date();
     const limit = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
 
-    let events = EventStore.getAll() // sorted soonest-first
+    const events = all
         .filter(e => filter === 'all' || e.type === filter)
         .filter(e => {
             const occ = getNextOccurrence(e);
@@ -533,12 +573,18 @@ function editEvent() {
     }
 }
 
-function deleteEvent() {
+async function deleteEvent() {
     if (!currentEvent) return;
     if (!confirm('Удалить событие?')) return;
 
-    EventStore.delete(currentEvent.id);
-    alert('Событие удалено');
+    try {
+        await EventStore.delete(currentEvent.id);
+    } catch (err) {
+        console.error(err);
+        alert('Не удалось удалить событие (бэкенд недоступен).');
+        return;
+    }
+
     closeModal();
     showScreen('all');
 }
@@ -919,7 +965,7 @@ function initYearlyMode() {
 /* ============================================================
    14. SAVE EVENT
    ============================================================ */
-function saveEvent() {
+async function saveEvent() {
     const name = document.getElementById('event-name').value.trim();
     const day = document.getElementById('day-select').value;
     const month = document.getElementById('month-select').value;
@@ -957,7 +1003,13 @@ function saveEvent() {
 
     // Editing an existing event: save and go back to the list (no repeated entry here).
     if (editingEventId) {
-        EventStore.update(editingEventId, eventData);
+        try {
+            await EventStore.update(editingEventId, eventData);
+        } catch (err) {
+            console.error(err);
+            alert('Не удалось сохранить изменения (бэкенд недоступен).');
+            return;
+        }
         editingEventId = null;
         showScreen('all');
         return;
@@ -965,7 +1017,13 @@ function saveEvent() {
 
     // New event: stay on the add screen so the user can enter several in a row.
     // No alert, no redirect — just a brief "saved" confirmation and a cleared form.
-    EventStore.add(eventData);
+    try {
+        await EventStore.add(eventData);
+    } catch (err) {
+        console.error(err);
+        alert('Не удалось сохранить событие (бэкенд недоступен).');
+        return;
+    }
     showSavedFeedback();
 }
 
