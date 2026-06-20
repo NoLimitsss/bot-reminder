@@ -103,6 +103,21 @@ body {
     font-size: 16px;
 }
 
+/* Compact header row: back button left, screen title right (saves vertical space) */
+.screen-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.screen-title {
+    margin: 0;
+    font-size: 20px;
+    text-align: right;
+    padding-right: 6px;
+}
+
 .empty-state {
     text-align: center;
     color: var(--tg-theme-hint-color, var(--hint));
@@ -185,10 +200,12 @@ body {
     margin: 5px 0;
 }
 
-.sun-times {
-    display: flex;
-    gap: 20px;
-    font-size: 12px;
+/* Full date under the clock — pairs the muted weekday above with the bright time */
+.date-text {
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--tg-theme-text-color, var(--text));
+    letter-spacing: 0.3px;
 }
 
 /* Footer, pinned to bottom */
@@ -420,11 +437,18 @@ body {
     border-radius: 14px;
     cursor: pointer;
     transition: transform 0.1s;
+    box-sizing: border-box;
+    border-left: 3px solid transparent;
 }
 
 .event-card:active {
     transform: scale(0.98);
 }
+
+/* Event type encoded by a quiet colored left edge (matches the legend) */
+.event-card--once    { border-left-color: #8e8e93; }
+.event-card--monthly { border-left-color: #2ea6ff; }
+.event-card--yearly  { border-left-color: #34c759; }
 
 /* Card layout: left column (number + important badge) | body */
 .event-card-row {
@@ -459,19 +483,6 @@ body {
     min-width: 0;
 }
 
-.event-title-row {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-bottom: 5px;
-}
-
-.event-type-icon {
-    font-size: 16px;
-    line-height: 1;
-    flex-shrink: 0;
-}
-
 .event-meta {
     display: flex;
     justify-content: space-between;
@@ -491,6 +502,7 @@ body {
     font-size: 16px;
     font-weight: 600;
     flex: 1;
+    margin-bottom: 5px;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
@@ -514,9 +526,30 @@ body {
 }
 
 /* Filter / sort bar (all events + upcoming) */
+.filter-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .filter-bar {
     display: flex;
     gap: 10px;
+}
+
+/* One labelled control (label on top, select below) */
+.filter-group {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-label {
+    font-size: 12px;
+    color: var(--tg-theme-hint-color, var(--hint));
+    padding-left: 2px;
 }
 
 .filter-select {
@@ -533,6 +566,35 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.2);
     cursor: pointer;
 }
+
+/* Type legend — single row, font scales with width so it never wraps */
+.type-legend {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 2px;
+    color: var(--tg-theme-hint-color, var(--hint));
+}
+
+.type-legend > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    font-size: clamp(10px, 3vw, 12px);
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.legend-dot.once    { background: #8e8e93; }
+.legend-dot.monthly { background: #2ea6ff; }
+.legend-dot.yearly  { background: #34c759; }
 
 /* Month grouping (sort "По месяцу") */
 .month-group {

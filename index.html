@@ -39,10 +39,7 @@
         <div class="time-container">
             <div id="current-day" class="day-text">Сегодня: --</div>
             <div id="current-time" class="time-text">00:00:00</div>
-            <div class="sun-times">
-                <span>🌅 Восход: 04:30</span>
-                <span>🌇 Закат: 21:15</span>
-            </div>
+            <div id="current-date" class="date-text">--</div>
         </div>
 
         <footer class="main-footer">
@@ -109,18 +106,24 @@
 
         <!-- Filter by type + time range -->
         <div class="filter-bar">
-            <select id="upcoming-filter" class="filter-select" onchange="renderUpcoming()">
-                <option value="all">Все</option>
-                <option value="once">Разовые</option>
-                <option value="monthly">Цикличные</option>
-                <option value="yearly">Ежегодные</option>
-            </select>
-            <select id="upcoming-range" class="filter-select" onchange="renderUpcoming()">
-                <option value="7">За 7 дней</option>
-                <option value="14">За 14 дней</option>
-                <option value="30" selected>За 30 дней</option>
-                <option value="60">За 60 дней</option>
-            </select>
+            <div class="filter-group">
+                <label class="filter-label">Тип события:</label>
+                <select id="upcoming-filter" class="filter-select" onchange="renderUpcoming()">
+                    <option value="all">Все</option>
+                    <option value="once">Разовые</option>
+                    <option value="monthly">Цикличные</option>
+                    <option value="yearly">Ежегодные</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Показать за:</label>
+                <select id="upcoming-range" class="filter-select" onchange="renderUpcoming()">
+                    <option value="7">За 7 дней</option>
+                    <option value="14">За 14 дней</option>
+                    <option value="30" selected>За 30 дней</option>
+                    <option value="60">За 60 дней</option>
+                </select>
+            </div>
         </div>
 
         <div id="upcoming-list" class="event-container"></div>
@@ -131,21 +134,37 @@
          ALL EVENTS SCREEN
          ============================================================ -->
     <div id="all-screen" class="screen" style="display: none;">
-        <button class="back-btn" onclick="showScreen('main')">← Назад</button>
-        <h2>📂 Все события</h2>
+        <!-- Header on one row: back button left, title right -->
+        <div class="screen-header">
+            <button class="back-btn" onclick="showScreen('main')">← Назад</button>
+            <h2 class="screen-title">📂 Все события</h2>
+        </div>
 
-        <!-- Filter by type + sort (date / group by month) -->
-        <div class="filter-bar">
-            <select id="all-filter" class="filter-select" onchange="renderAllEvents()">
-                <option value="all">Все</option>
-                <option value="once">Разовые</option>
-                <option value="monthly">Цикличные</option>
-                <option value="yearly">Ежегодные</option>
-            </select>
-            <select id="all-sort" class="filter-select" onchange="renderAllEvents()">
-                <option value="date">По дате</option>
-                <option value="month">По месяцу</option>
-            </select>
+        <!-- Filter by type + sort (date / group by month), with a type legend -->
+        <div class="filter-block">
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label class="filter-label">Тип события:</label>
+                    <select id="all-filter" class="filter-select" onchange="renderAllEvents()">
+                        <option value="all">Все</option>
+                        <option value="once">Разовые</option>
+                        <option value="monthly">Цикличные</option>
+                        <option value="yearly">Ежегодные</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Сортировать по:</label>
+                    <select id="all-sort" class="filter-select" onchange="renderAllEvents()">
+                        <option value="date">По дате</option>
+                        <option value="month">По месяцу</option>
+                    </select>
+                </div>
+            </div>
+            <div class="type-legend">
+                <span><span class="legend-dot once"></span>разовое</span>
+                <span><span class="legend-dot monthly"></span>цикличное</span>
+                <span><span class="legend-dot yearly"></span>ежегодное</span>
+            </div>
         </div>
 
         <div id="all-list" class="event-container"></div>

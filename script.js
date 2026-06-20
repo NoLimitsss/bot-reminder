@@ -201,6 +201,8 @@ function updateClock() {
     const now = new Date();
     document.getElementById('current-day').innerText = `Сегодня: ${WEEKDAYS[now.getDay()]}`;
     document.getElementById('current-time').innerText = now.toLocaleTimeString('ru-RU');
+    document.getElementById('current-date').innerText =
+        now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 
@@ -294,6 +296,8 @@ function renderUpcoming() {
 function buildEventCard(event, index, options = {}) {
     const { showTimer = false } = options;
     const dateLabel = formatEventDate(event);
+    // Time appended only when set — no trailing "· —" clutter
+    const timeStr = (event.time && event.time !== '—') ? ` · ${event.time}` : '';
 
     const importanceBadge = event.important
         ? '<div class="event-important-badge">⚠️</div>'
@@ -304,7 +308,8 @@ function buildEventCard(event, index, options = {}) {
         : '';
 
     const card = document.createElement('div');
-    card.className = 'event-card';
+    // Type is encoded by the colored left border (see .event-card--*), not an icon
+    card.className = `event-card event-card--${event.type}`;
     card.innerHTML = `
         <div class="event-card-row">
             <div class="event-card-left">
@@ -312,24 +317,15 @@ function buildEventCard(event, index, options = {}) {
                 ${importanceBadge}
             </div>
             <div class="event-card-body">
-                <div class="event-title-row">
-                    ${getTypeIcon(event.type)}
-                    <div class="event-name">${event.name}</div>
-                </div>
+                <div class="event-name">${event.name}</div>
                 <div class="event-meta">
-                    <small class="event-date-line">📅 ${dateLabel} | ⏰ ${event.time || '—'}</small>
+                    <small class="event-date-line">${dateLabel}${timeStr}</small>
                     ${timerHtml}
                 </div>
             </div>
         </div>`;
     card.onclick = () => openDetails(event);
     return card;
-}
-
-// Distinct icon per event type: once / monthly / yearly
-function getTypeIcon(type) {
-    const map = { once: '📍', monthly: '🔁', yearly: '📆' };
-    return `<span class="event-type-icon">${map[type] || '•'}</span>`;
 }
 
 // Builds a human-readable date string from an event's day/month/year/period fields.
