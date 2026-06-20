@@ -11,6 +11,7 @@
         6a. Type selector (once / monthly / yearly)
         6b. Date & time pickers
         6c. Notes field
+        6d. Importance toggle
      7. Event list & cards
      8. Event details modal
      9. FAQ accordion
@@ -329,6 +330,69 @@ body {
     resize: none;
     overflow-y: auto;
     flex-shrink: 0;
+}
+
+/* ---------- 6d. Importance toggle ---------- */
+.importance-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 15px;
+    background: var(--tg-theme-secondary-bg-color, var(--secondary));
+    border-radius: 12px;
+}
+
+.importance-toggle-label {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--tg-theme-text-color, var(--text));
+}
+
+/* iOS-style switch, built from a checkbox + label */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--tg-theme-hint-color, var(--hint));
+    border-radius: 28px;
+    transition: background-color 0.2s;
+}
+
+.switch-slider::before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+}
+
+.switch input:checked + .switch-slider {
+    background-color: #ff9500;
+}
+
+.switch input:checked + .switch-slider::before {
+    transform: translateX(20px);
 }
 
 

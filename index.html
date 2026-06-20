@@ -22,7 +22,7 @@
         <h1>Здравствуйте, <span id="username">гость</span>!</h1>
 
         <div class="grid">
-            <button class="menu-item" onclick="showScreen('add')">
+            <button class="menu-item" onclick="showAddScreen()">
                 <span style="font-size: 24px;">➕</span> Добавить событие
             </button>
             <button class="menu-item" onclick="showScreen('upcoming')">
@@ -56,7 +56,7 @@
          ============================================================ -->
     <div id="add-screen" class="screen" style="display: none;">
         <button class="back-btn" onclick="showScreen('main')">← Назад</button>
-        <h1>Добавить событие</h1>
+        <h1 id="add-screen-title">Добавить событие</h1>
 
         <input type="text" id="event-name" class="input-field"
                placeholder="Название события (не более 50 символов)" maxlength="50">
@@ -86,6 +86,15 @@
 
         <textarea id="event-notes" class="input-field" rows="3" maxlength="500"
                   placeholder="Примечания (не более 500 символов)"></textarea>
+
+        <!-- "Important event" toggle — controls the ⚠️ icon on event cards -->
+        <div class="importance-toggle-wrapper">
+            <span class="importance-toggle-label">⚠️ Важное событие</span>
+            <label class="switch">
+                <input type="checkbox" id="event-important">
+                <span class="switch-slider"></span>
+            </label>
+        </div>
 
         <button class="save-btn" onclick="saveEvent()">Сохранить</button>
     </div>
@@ -129,8 +138,12 @@
             <button class="back-btn" onclick="closeModal()">← Назад</button>
             <h2 id="modal-title"></h2>
 
-            <p><strong>Дата:</strong> <span id="modal-date"></span></p>
-            <p><strong>Время:</strong> <span id="modal-time"></span></p>
+            <p>
+                <strong>Дата:</strong> <span id="modal-date"></span>
+                &nbsp;&nbsp;
+                <strong>Время:</strong> <span id="modal-time"></span>
+                <span id="modal-importance-icon"></span>
+            </p>
 
             <p><strong>Примечания:</strong></p>
             <div id="modal-notes-display" class="notes-display-box"></div>

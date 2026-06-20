@@ -63,18 +63,125 @@ function generateTestEvents() {
     const events = [];
     for (let i = 1; i <= 20; i++) {
         events.push({
+            id: `test-${i}`,
             name: `${subjects[i % subjects.length]} №${i}`,
-            date: `20.06.2026`,
+            type: i % 3 === 0 ? 'monthly' : 'once',
+            day: '20',
+            month: '06',
+            year: '2026',
+            period: i % 3 === 0 ? '1' : null,
             time: `${(i % 24).toString().padStart(2, '0')}:00`,
-            type: i % 3 === 0 ? 'recurring' : 'once',
-            importance: i % 4 === 0 ? 'high' : 'normal',
+            important: i % 4 === 0,
             notes: generateRandomText(450)
         });
     }
     return events;
 }
 
-const testEvents = generateTestEvents();
+
+/* ============================================================
+   2.5 EVENT STORE (data layer)
+   ============================================================
+   Every read/write to event data goes through this object, and
+   nowhere else in the app. Today it persists to localStorage.
+   Later, swapping to a real backend means rewriting ONLY the
+   bodies of these methods (e.g. to use fetch()) — every other
+   part of the app (rendering, forms, buttons) stays untouched.
+
+   Event shape (the single source of truth for what an event is):
+   {
+     id:        string   — unique identifier
+     name:      string
+     type:      'once' | 'monthly' | 'yearly'
+     day:       string   — '01'..'31'
+     month:     string   — '01'..'12'
+     year:      string|null  — only meaningful for 'once' / 'yearly'
+     period:    string|null  — only meaningful for 'monthly' (repeat every N months)
+     time:      string   — 'HH:MM' or '—'
+     important: boolean
+     notes:     string
+   }
+   ============================================================ */
+const EventStore = (() => {
+    const STORAGE_KEY = 'planner_events';
+
+    function readAll() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            return raw ? JSON.parse(raw) : [];
+        } catch (err) {
+            console.error('EventStore: failed to read storage', err);
+            return [];
+        }
+    }
+
+    function writeAll(events) {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+            return true;
+        } catch (err) {
+            console.error('EventStore: failed to write storage', err);
+            return false;
+        }
+    }
+
+    function generateId() {
+        return `evt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    return {
+        // Returns all events, sorted by next occurrence (soonest first)
+        getAll() {
+            return readAll().sort((a, b) => getNextOccurrence(a) - getNextOccurrence(b));
+        },
+
+        // Returns a single event by id, or null
+        getById(id) {
+            return readAll().find(e => e.id === id) || null;
+        },
+
+        // Adds a new event, assigning it an id. Returns the saved event.
+        add(eventData) {
+            const events = readAll();
+            const newEvent = { ...eventData, id: generateId() };
+            events.push(newEvent);
+            writeAll(events);
+            return newEvent;
+        },
+
+        // Updates an existing event by id. Returns the updated event, or null if not found.
+        update(id, eventData) {
+            const events = readAll();
+            const index = events.findIndex(e => e.id === id);
+            if (index === -1) return null;
+
+            events[index] = { ...eventData, id };
+            writeAll(events);
+            return events[index];
+        },
+
+        // Deletes an event by id. Returns true if something was deleted.
+        delete(id) {
+            const events = readAll();
+            const filtered = events.filter(e => e.id !== id);
+            if (filtered.length === events.length) return false;
+
+            writeAll(filtered);
+            return true;
+        },
+
+        // One-time seeding of test data — only runs if storage is empty
+        seedIfEmpty(testData) {
+            if (readAll().length === 0) {
+                writeAll(testData);
+            }
+        }
+    };
+})();
+
+// Seed local storage with test data the first time the app runs.
+// After this, EventStore.getAll() is the only source of truth.
+EventStore.seedIfEmpty(generateTestEvents());
 
 
 /* ============================================================
@@ -82,6 +189,7 @@ const testEvents = generateTestEvents();
    ============================================================ */
 let currentEvent = null;       // event currently shown in the details modal
 let currentAddMode = 'once';   // 'once' | 'monthly' | 'yearly' — active mode in the add-event form
+let editingEventId = null;     // id of the event being edited, or null when creating a new one
 
 
 /* ============================================================
@@ -103,8 +211,15 @@ function showScreen(screenName) {
     if (!target) return;
 
     target.style.display = 'flex';
-    if (screenName === 'all') renderEvents('all-list', testEvents);
-    if (screenName === 'upcoming') renderEvents('upcoming-list', testEvents.slice(0, 3));
+    if (screenName === 'all') renderEvents('all-list', EventStore.getAll());
+    if (screenName === 'upcoming') renderEvents('upcoming-list', EventStore.getAll().slice(0, 3));
+}
+
+// Opens the add-event screen in "create new" mode (clears any leftover edit state / form values)
+function showAddScreen() {
+    editingEventId = null;
+    resetAddForm();
+    showScreen('add');
 }
 
 
@@ -150,14 +265,15 @@ function renderEvents(listId, eventArray) {
 }
 
 function buildEventCard(event, index) {
-    const timeLeft = getTimeRemaining(event.date, event.time);
+    const dateLabel = formatEventDate(event);
+    const timeLeft = getTimeRemaining(event);
 
-    const typeIcon = event.type === 'recurring'
-        ? '<span style="color: #4cc9f0; font-size: 18px; line-height: 1; vertical-align: middle;">↻</span>'
-        : '<span style="color: var(--tg-theme-hint-color); font-size: 18px; line-height: 1; vertical-align: middle;">•</span>';
+    const typeIcon = event.type === 'once'
+        ? '<span style="color: var(--tg-theme-hint-color); font-size: 18px; line-height: 1; vertical-align: middle;">•</span>'
+        : '<span style="color: #4cc9f0; font-size: 18px; line-height: 1; vertical-align: middle;">↻</span>';
 
-    const importanceIcon = event.importance === 'high'
-        ? '<span style="color: #ff9500; font-size: 16px; margin-right: 8px;">⚠️</span>'
+    const importanceIcon = event.important
+        ? '<span style="color: #ff9500; font-size: 14px; margin-left: 6px;">⚠️</span>'
         : '';
 
     const card = document.createElement('div');
@@ -171,11 +287,8 @@ function buildEventCard(event, index) {
                     <div class="event-name" style="margin-left: 4px;">${event.name}</div>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; color: var(--tg-theme-hint-color); font-size: 14px;">
-                    <small style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📅 ${event.date} | ⏰ ${event.time || '—'}</small>
-                    <div style="display: flex; align-items: center; flex-shrink: 0;">
-                        ${importanceIcon}
-                        <div class="event-timer">${timeLeft}</div>
-                    </div>
+                    <small style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📅 ${dateLabel} | ⏰ ${event.time || '—'}${importanceIcon}</small>
+                    <div class="event-timer">${timeLeft}</div>
                 </div>
             </div>
         </div>`;
@@ -183,10 +296,52 @@ function buildEventCard(event, index) {
     return card;
 }
 
-function getTimeRemaining(eventDate, eventTime) {
+// Builds a human-readable date string from an event's day/month/year/period fields
+function formatEventDate(event) {
+    if (event.type === 'monthly') {
+        const periodText = event.period === '1' ? 'каждый месяц' : `раз в ${event.period} мес.`;
+        return `${event.day}.${event.month} (${periodText})`;
+    }
+    return `${event.day}.${event.month}.${event.year}`;
+}
+
+// Returns a Date object for the next time this event will occur.
+// - once:    the exact date/time, regardless of whether it's already passed (caller decides what to do with a past date)
+// - yearly:  the next upcoming day.month, this year or next
+// - monthly: the next upcoming day-of-month that lands on the day/period cycle, starting from `year`/`month` as the anchor
+function getNextOccurrence(event) {
     const now = new Date();
-    const [d, m, y] = eventDate.split('.');
-    const target = new Date(`${y}-${m}-${d}T${eventTime || '00:00'}:00`);
+    const [h, min] = (event.time && event.time !== '—') ? event.time.split(':') : ['00', '00'];
+    const day = parseInt(event.day, 10);
+    const month = parseInt(event.month, 10);
+
+    if (event.type === 'once') {
+        return new Date(parseInt(event.year, 10), month - 1, day, h, min);
+    }
+
+    if (event.type === 'yearly') {
+        let candidate = new Date(now.getFullYear(), month - 1, day, h, min);
+        if (candidate < now) candidate = new Date(now.getFullYear() + 1, month - 1, day, h, min);
+        return candidate;
+    }
+
+    if (event.type === 'monthly') {
+        const period = parseInt(event.period, 10) || 1;
+        // Anchor: the first occurrence, built from the event's stored year/month/day
+        let candidate = new Date(parseInt(event.year, 10) || now.getFullYear(), month - 1, day, h, min);
+        // Step forward by `period` months until we're in the future
+        while (candidate < now) {
+            candidate = new Date(candidate.getFullYear(), candidate.getMonth() + period, day, h, min);
+        }
+        return candidate;
+    }
+
+    return now; // fallback, shouldn't happen
+}
+
+function getTimeRemaining(event) {
+    const now = new Date();
+    const target = getNextOccurrence(event);
 
     const diff = target - now;
     if (diff <= 0) return 'Уже наступило';
@@ -203,8 +358,11 @@ function getTimeRemaining(eventDate, eventTime) {
 function openDetails(event) {
     currentEvent = event;
     document.getElementById('modal-title').innerText = event.name;
-    document.getElementById('modal-date').innerText = event.date;
+    document.getElementById('modal-date').innerText = formatEventDate(event);
     document.getElementById('modal-time').innerText = event.time || '—';
+    document.getElementById('modal-importance-icon').innerHTML = event.important
+        ? '<span style="color: #ff9500;">⚠️</span>'
+        : '';
     document.getElementById('modal-notes-display').innerText = event.notes || 'Без примечаний';
     document.getElementById('modal-overlay').style.display = 'flex';
 }
@@ -217,21 +375,45 @@ function editEvent() {
     if (!currentEvent) return;
 
     closeModal();
+    editingEventId = currentEvent.id;
     showScreen('add');
 
+    document.getElementById('add-screen-title').innerText = 'Редактировать событие';
     document.getElementById('event-name').value = currentEvent.name;
     document.getElementById('event-notes').value = currentEvent.notes || '';
+    document.getElementById('event-important').checked = !!currentEvent.important;
 
-    const [d, m, y] = currentEvent.date.split('.');
-    document.getElementById('day-select').value = d;
-    document.getElementById('month-select').value = m;
-    document.getElementById('year-select').value = y;
+    // Activate the correct type button and rebuild the date pickers for that mode
+    // BEFORE filling in values — initOnceMode/initMonthlyMode/initYearlyMode rebuild
+    // <option> lists from scratch, so filling values first would just get wiped out.
+    document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('active'));
+    const typeButtons = document.querySelectorAll('.type-option');
+    const modeIndex = { once: 0, monthly: 1, yearly: 2 }[currentEvent.type];
+    if (typeButtons[modeIndex]) typeButtons[modeIndex].classList.add('active');
+    updatePickerMode(currentEvent.type);
 
-    document.getElementById('real-time').value = currentEvent.time || '';
+    document.getElementById('day-select').value = currentEvent.day;
+    document.getElementById('month-select').value = currentEvent.month;
+
+    if (currentEvent.type === 'monthly') {
+        document.getElementById('year-select').value = currentEvent.period;
+    } else {
+        document.getElementById('year-select').value = currentEvent.year;
+    }
+
+    document.getElementById('real-time').value = currentEvent.time !== '—' ? currentEvent.time : '';
+    if (currentEvent.time && currentEvent.time !== '—') {
+        document.getElementById('time-btn').innerText = `⏰ ${currentEvent.time}`;
+    } else {
+        document.getElementById('time-btn').innerText = '⏰ Выбрать время';
+    }
 }
 
 function deleteEvent() {
+    if (!currentEvent) return;
     if (!confirm('Удалить событие?')) return;
+
+    EventStore.delete(currentEvent.id);
     alert('Событие удалено');
     closeModal();
     showScreen('all');
@@ -274,6 +456,21 @@ function updatePickerMode(mode) {
     if (mode === 'once') initOnceMode();
     else if (mode === 'monthly') initMonthlyMode();
     else if (mode === 'yearly') initYearlyMode();
+}
+
+// Clears the add/edit form back to a blank "create new event" state
+function resetAddForm() {
+    document.getElementById('add-screen-title').innerText = 'Добавить событие';
+    document.getElementById('event-name').value = '';
+    document.getElementById('event-notes').value = '';
+    document.getElementById('event-important').checked = false;
+    document.getElementById('real-time').value = '';
+    document.getElementById('time-btn').innerText = '⏰ Выбрать время';
+
+    document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('active'));
+    const firstOption = document.querySelector('.type-option');
+    if (firstOption) firstOption.classList.add('active');
+    updatePickerMode('once');
 }
 
 
@@ -507,6 +704,8 @@ function saveEvent() {
     const month = document.getElementById('month-select').value;
     const yearOrPeriod = document.getElementById('year-select').value;
     const time = document.getElementById('real-time').value || '—';
+    const notes = document.getElementById('event-notes').value.trim();
+    const important = document.getElementById('event-important').checked;
 
     if (!name) {
         alert('Введите название события!');
@@ -521,13 +720,30 @@ function saveEvent() {
         return;
     }
 
-    if (currentAddMode === 'once') {
-        alert(`✅ Разовое событие сохранено!\n\nНазвание: ${name}\nДата: ${day}.${month}.${yearOrPeriod}\nВремя: ${time}`);
-    } else if (currentAddMode === 'monthly') {
-        alert(`✅ Циклическое событие сохранено!\n\nНазвание: ${name}\nДень: ${day}\nМесяц: ${month}\nПериод: раз в ${yearOrPeriod} месяц(а)\nВремя: ${time}`);
-    } else if (currentAddMode === 'yearly') {
-        alert(`✅ Ежегодное событие сохранено!\n\nНазвание: ${name}\nДата: ${day}.${month}.${yearOrPeriod}\nВремя: ${time}`);
+    // Build the event object using the explicit shape described in EventStore's
+    // header comment — year and period are never reused for double duty here.
+    const eventData = {
+        name,
+        type: currentAddMode,
+        day,
+        month,
+        year: currentAddMode === 'monthly' ? null : yearOrPeriod,
+        period: currentAddMode === 'monthly' ? yearOrPeriod : null,
+        time,
+        important,
+        notes
+    };
+
+    if (editingEventId) {
+        EventStore.update(editingEventId, eventData);
+        alert('✅ Событие обновлено!');
+    } else {
+        EventStore.add(eventData);
+        alert('✅ Событие сохранено!');
     }
+
+    editingEventId = null;
+    showScreen('all');
 }
 
 
@@ -599,9 +815,5 @@ document.addEventListener('DOMContentLoaded', () => {
     updateClock();
     setInterval(updateClock, 1000);
 
-    const firstOption = document.querySelector('.type-option');
-    if (firstOption) {
-        firstOption.classList.add('active');
-        updatePickerMode('once');
-    }
+    resetAddForm();
 });
