@@ -234,6 +234,15 @@ body {
     border-radius: 12px;
     font-weight: bold;
     cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+/* Brief "saved" state after adding an event */
+.save-btn.saved {
+    background: #34c759;
+    color: #ffffff;
+    cursor: default;
+    opacity: 0.9;
 }
 
 /* ---------- 6a. Type selector (once / monthly / yearly) ---------- */
@@ -417,6 +426,67 @@ body {
     transform: scale(0.98);
 }
 
+/* Card layout: left column (number + important badge) | body */
+.event-card-row {
+    display: flex;
+    width: 100%;
+    gap: 10px;
+}
+
+.event-card-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 24px;
+    flex-shrink: 0;
+    padding-top: 2px;
+    gap: 4px;
+}
+
+.event-number {
+    color: var(--tg-theme-hint-color, var(--hint));
+    font-weight: 600;
+}
+
+/* Important badge sits right under the number, so the timer can't hide it */
+.event-important-badge {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.event-card-body {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.event-title-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 5px;
+}
+
+.event-type-icon {
+    font-size: 16px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.event-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--tg-theme-hint-color, var(--hint));
+    font-size: 14px;
+    gap: 8px;
+}
+
+.event-date-line {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .event-name {
     font-size: 16px;
     font-weight: 600;
@@ -441,6 +511,43 @@ body {
     white-space: nowrap;
     flex-shrink: 0;
     align-self: center;
+}
+
+/* Filter / sort bar (all events + upcoming) */
+.filter-bar {
+    display: flex;
+    gap: 10px;
+}
+
+.filter-select {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--tg-theme-secondary-bg-color, var(--secondary));
+    color: var(--tg-theme-text-color, var(--text));
+    font-size: 14px;
+    font-weight: 500;
+    outline: none;
+    text-align: center;
+    appearance: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+}
+
+/* Month grouping (sort "По месяцу") */
+.month-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.month-group-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--tg-theme-text-color, var(--text));
+    padding: 4px 2px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 
@@ -487,6 +594,19 @@ body {
     background: transparent;
     color: #ff3b30;
     border: 1px solid #ff3b30;
+}
+
+/* Live countdown block in the modal — blue outline, between time and notes */
+.modal-countdown {
+    margin: 14px 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--tg-theme-button-color);
+    border: 1px solid var(--tg-theme-button-color);
+    background: var(--tg-theme-secondary-bg-color, var(--secondary));
 }
 
 /* Notes display box inside the modal (read-only, scrollable, fade-edged) */

@@ -48,36 +48,6 @@ const MONTHS_SHORT = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн'
 
 const WEEKDAYS = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
 
-// Generates placeholder events for local UI testing
-function generateTestEvents() {
-    const subjects = ['Встреча', 'Звонок', 'Дедлайн', 'План', 'Покупка', 'Визит', 'Обед', 'Тренировка', 'Презентация', 'Конференция'];
-
-    function generateRandomText(length) {
-        let text = '';
-        while (text.length < length) {
-            text += 'Это описание события, которое занимает много места. ';
-        }
-        return text.substring(0, length);
-    }
-
-    const events = [];
-    for (let i = 1; i <= 20; i++) {
-        events.push({
-            id: `test-${i}`,
-            name: `${subjects[i % subjects.length]} №${i}`,
-            type: i % 3 === 0 ? 'monthly' : 'once',
-            day: '20',
-            month: '06',
-            year: '2026',
-            period: i % 3 === 0 ? '1' : null,
-            time: `${(i % 24).toString().padStart(2, '0')}:00`,
-            important: i % 4 === 0,
-            notes: generateRandomText(450)
-        });
-    }
-    return events;
-}
-
 
 /* ============================================================
    2.5 EVENT STORE (data layer)
@@ -168,20 +138,9 @@ const EventStore = (() => {
 
             writeAll(filtered);
             return true;
-        },
-
-        // One-time seeding of test data — only runs if storage is empty
-        seedIfEmpty(testData) {
-            if (readAll().length === 0) {
-                writeAll(testData);
-            }
         }
     };
 })();
-
-// Seed local storage with test data the first time the app runs.
-// After this, EventStore.getAll() is the only source of truth.
-EventStore.seedIfEmpty(generateTestEvents());
 
 
 /* ============================================================
@@ -211,8 +170,8 @@ function showScreen(screenName) {
     if (!target) return;
 
     target.style.display = 'flex';
-    if (screenName === 'all') renderEvents('all-list', EventStore.getAll());
-    if (screenName === 'upcoming') renderEvents('upcoming-list', EventStore.getAll().slice(0, 3));
+    if (screenName === 'all') renderAllEvents();
+    if (screenName === 'upcoming') renderUpcoming();
 }
 
 // Opens the add-event screen in "create new" mode (clears any leftover edit state / form values)
@@ -248,47 +207,118 @@ function updateClock() {
 /* ============================================================
    7. EVENT LIST RENDERING
    ============================================================ */
-function renderEvents(listId, eventArray) {
-    const container = document.getElementById(listId);
+// ----- "All events" screen: filter + sort/group, no per-card timer -----
+function renderAllEvents() {
+    const container = document.getElementById('all-list');
     if (!container) return;
+
+    const filter = document.getElementById('all-filter').value; // all | once | monthly | yearly
+    const sort = document.getElementById('all-sort').value;      // date | month
+
+    let events = EventStore.getAll(); // already sorted by next occurrence (soonest first)
+    if (filter !== 'all') events = events.filter(e => e.type === filter);
 
     container.innerHTML = '';
 
-    if (eventArray.length === 0) {
+    if (events.length === 0) {
         container.innerHTML = '<div class="empty-state">Список событий пуст</div>';
         return;
     }
 
-    eventArray.forEach((event, index) => {
-        container.appendChild(buildEventCard(event, index));
+    if (sort === 'month') {
+        renderGroupedByMonth(container, events);
+    } else {
+        events.forEach((event, index) => {
+            container.appendChild(buildEventCard(event, index, { showTimer: false }));
+        });
+    }
+}
+
+// Groups events into "Январь", "Февраль", … blocks (sort + group in one).
+// Within each month the events keep their soonest-first order.
+function renderGroupedByMonth(container, events) {
+    let counter = 0;
+    for (let m = 1; m <= 12; m++) {
+        const group = events.filter(e => parseInt(e.month, 10) === m);
+        if (group.length === 0) continue;
+
+        const wrap = document.createElement('div');
+        wrap.className = 'month-group';
+
+        const title = document.createElement('div');
+        title.className = 'month-group-title';
+        title.innerText = MONTHS_FULL[m - 1];
+        wrap.appendChild(title);
+
+        group.forEach(event => {
+            wrap.appendChild(buildEventCard(event, counter++, { showTimer: false }));
+        });
+
+        container.appendChild(wrap);
+    }
+}
+
+// ----- "Upcoming" screen: filter by type + time window, keep the timer -----
+function renderUpcoming() {
+    const container = document.getElementById('upcoming-list');
+    if (!container) return;
+
+    const filter = document.getElementById('upcoming-filter').value;       // all | once | monthly | yearly
+    const days = parseInt(document.getElementById('upcoming-range').value, 10); // 7 | 14 | 30 | 60
+
+    const now = new Date();
+    const limit = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+
+    let events = EventStore.getAll() // sorted soonest-first
+        .filter(e => filter === 'all' || e.type === filter)
+        .filter(e => {
+            const occ = getNextOccurrence(e);
+            return occ >= now && occ <= limit;
+        });
+
+    container.innerHTML = '';
+
+    if (events.length === 0) {
+        container.innerHTML = `<div class="empty-state">Нет событий за выбранный период (${days} дн.)</div>`;
+        return;
+    }
+
+    events.forEach((event, index) => {
+        container.appendChild(buildEventCard(event, index, { showTimer: true }));
     });
 }
 
-function buildEventCard(event, index) {
+// Builds one event card. The important badge sits under the number (so it
+// never hides behind the timer). The side timer is shown only when asked
+// (upcoming screen); "all events" cards have no timer.
+function buildEventCard(event, index, options = {}) {
+    const { showTimer = false } = options;
     const dateLabel = formatEventDate(event);
-    const timeLeft = getTimeRemaining(event);
 
-    const typeIcon = event.type === 'once'
-        ? '<span style="color: var(--tg-theme-hint-color); font-size: 18px; line-height: 1; vertical-align: middle;">•</span>'
-        : '<span style="color: #4cc9f0; font-size: 18px; line-height: 1; vertical-align: middle;">↻</span>';
+    const importanceBadge = event.important
+        ? '<div class="event-important-badge">⚠️</div>'
+        : '';
 
-    const importanceIcon = event.important
-        ? '<span style="color: #ff9500; font-size: 14px; margin-left: 6px;">⚠️</span>'
+    const timerHtml = showTimer
+        ? `<div class="event-timer">${getTimeRemaining(event)}</div>`
         : '';
 
     const card = document.createElement('div');
     card.className = 'event-card';
     card.innerHTML = `
-        <div style="display: flex; width: 100%; gap: 10px;">
-            <div style="color: var(--tg-theme-hint-color); font-weight: 600; min-width: 22px; flex-shrink: 0; padding-top: 2px;">#${index + 1}</div>
-            <div style="flex-grow: 1; min-width: 0;">
-                <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                    ${typeIcon}
-                    <div class="event-name" style="margin-left: 4px;">${event.name}</div>
+        <div class="event-card-row">
+            <div class="event-card-left">
+                <div class="event-number">#${index + 1}</div>
+                ${importanceBadge}
+            </div>
+            <div class="event-card-body">
+                <div class="event-title-row">
+                    ${getTypeIcon(event.type)}
+                    <div class="event-name">${event.name}</div>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; color: var(--tg-theme-hint-color); font-size: 14px;">
-                    <small style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📅 ${dateLabel} | ⏰ ${event.time || '—'}${importanceIcon}</small>
-                    <div class="event-timer">${timeLeft}</div>
+                <div class="event-meta">
+                    <small class="event-date-line">📅 ${dateLabel} | ⏰ ${event.time || '—'}</small>
+                    ${timerHtml}
                 </div>
             </div>
         </div>`;
@@ -296,10 +326,17 @@ function buildEventCard(event, index) {
     return card;
 }
 
-// Builds a human-readable date string from an event's day/month/year/period fields
+// Distinct icon per event type: once / monthly / yearly
+function getTypeIcon(type) {
+    const map = { once: '📍', monthly: '🔁', yearly: '📆' };
+    return `<span class="event-type-icon">${map[type] || '•'}</span>`;
+}
+
+// Builds a human-readable date string from an event's day/month/year/period fields.
+// Monthly uses the short "мес." form to save space: (Каждый мес.) / (Раз в X мес.)
 function formatEventDate(event) {
     if (event.type === 'monthly') {
-        const periodText = event.period === '1' ? 'каждый месяц' : `раз в ${event.period} мес.`;
+        const periodText = event.period === '1' ? 'Каждый мес.' : `Раз в ${event.period} мес.`;
         return `${event.day}.${event.month} (${periodText})`;
     }
     return `${event.day}.${event.month}.${event.year}`;
@@ -351,18 +388,51 @@ function getTimeRemaining(event) {
     return `${days > 0 ? days + ' дн. ' : ''}${hours} ч.`;
 }
 
+// Russian plural helper: plural(2, 'день','дня','дней') -> 'дня'
+function plural(n, one, few, many) {
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return one;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+    return many;
+}
+
+// Full countdown text for the modal: "До события: X дней, Y часов, Z минут".
+// Minutes are shown only when the event has a specific time set.
+function getCountdownText(event) {
+    const now = new Date();
+    let diff = getNextOccurrence(event) - now;
+    if (diff <= 0) return 'Событие уже наступило';
+
+    const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+    diff -= days * 24 * 60 * 60 * 1000;
+    const hours = Math.floor(diff / (60 * 60 * 1000));
+    diff -= hours * 60 * 60 * 1000;
+    const minutes = Math.floor(diff / (60 * 1000));
+
+    const hasTime = event.time && event.time !== '—';
+
+    const parts = [
+        `${days} ${plural(days, 'день', 'дня', 'дней')}`,
+        `${hours} ${plural(hours, 'час', 'часа', 'часов')}`
+    ];
+    if (hasTime) parts.push(`${minutes} ${plural(minutes, 'минута', 'минуты', 'минут')}`);
+
+    return 'До события: ' + parts.join(', ');
+}
+
 
 /* ============================================================
    8. EVENT DETAILS MODAL (view / edit / delete)
    ============================================================ */
 function openDetails(event) {
     currentEvent = event;
-    document.getElementById('modal-title').innerText = event.name;
+    // Important icon goes BEFORE the name: "⚠️ Название события"
+    document.getElementById('modal-title').textContent =
+        (event.important ? '⚠️ ' : '') + event.name;
     document.getElementById('modal-date').innerText = formatEventDate(event);
     document.getElementById('modal-time').innerText = event.time || '—';
-    document.getElementById('modal-importance-icon').innerHTML = event.important
-        ? '<span style="color: #ff9500;">⚠️</span>'
-        : '';
+    document.getElementById('modal-countdown').innerText = getCountdownText(event);
     document.getElementById('modal-notes-display').innerText = event.notes || 'Без примечаний';
     document.getElementById('modal-overlay').style.display = 'flex';
 }
@@ -734,16 +804,37 @@ function saveEvent() {
         notes
     };
 
+    // Editing an existing event: save and go back to the list (no repeated entry here).
     if (editingEventId) {
         EventStore.update(editingEventId, eventData);
-        alert('✅ Событие обновлено!');
-    } else {
-        EventStore.add(eventData);
-        alert('✅ Событие сохранено!');
+        editingEventId = null;
+        showScreen('all');
+        return;
     }
 
-    editingEventId = null;
-    showScreen('all');
+    // New event: stay on the add screen so the user can enter several in a row.
+    // No alert, no redirect — just a brief "saved" confirmation and a cleared form.
+    EventStore.add(eventData);
+    showSavedFeedback();
+}
+
+// Briefly turns the save button into a disabled "Сохранено ✓" state and clears
+// the form, then restores the button after ~1.5s.
+function showSavedFeedback() {
+    const btn = document.getElementById('save-btn');
+
+    resetAddForm();
+
+    if (!btn) return;
+    btn.disabled = true;
+    btn.classList.add('saved');
+    btn.innerText = '✓ Сохранено';
+
+    setTimeout(() => {
+        btn.disabled = false;
+        btn.classList.remove('saved');
+        btn.innerText = 'Сохранить';
+    }, 1500);
 }
 
 
@@ -815,5 +906,22 @@ document.addEventListener('DOMContentLoaded', () => {
     updateClock();
     setInterval(updateClock, 1000);
 
+    // Live timers: refresh visible countdowns every 60s so they tick in real time
+    setInterval(refreshLiveTimers, 60 * 1000);
+
     resetAddForm();
 });
+
+// Re-renders any visible countdowns (upcoming list cards + open modal) so the
+// timers stay current without reloading the screen.
+function refreshLiveTimers() {
+    const upcomingScreen = document.getElementById('upcoming-screen');
+    if (upcomingScreen && upcomingScreen.style.display !== 'none') {
+        renderUpcoming();
+    }
+
+    const modal = document.getElementById('modal-overlay');
+    if (modal && modal.style.display !== 'none' && currentEvent) {
+        document.getElementById('modal-countdown').innerText = getCountdownText(currentEvent);
+    }
+}

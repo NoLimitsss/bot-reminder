@@ -26,7 +26,7 @@
                 <span style="font-size: 24px;">➕</span> Добавить событие
             </button>
             <button class="menu-item" onclick="showScreen('upcoming')">
-                <span style="font-size: 24px;">📅</span> Ближайшие 3 события
+                <span style="font-size: 24px;">📅</span> Ближайшие события
             </button>
             <button class="menu-item" onclick="showScreen('all')">
                 <span style="font-size: 24px;">📂</span> Все события
@@ -96,7 +96,7 @@
             </label>
         </div>
 
-        <button class="save-btn" onclick="saveEvent()">Сохранить</button>
+        <button id="save-btn" class="save-btn" onclick="saveEvent()">Сохранить</button>
     </div>
 
 
@@ -106,6 +106,23 @@
     <div id="upcoming-screen" class="screen" style="display: none;">
         <button class="back-btn" onclick="showScreen('main')">← Назад</button>
         <h2>📅 Ближайшие события</h2>
+
+        <!-- Filter by type + time range -->
+        <div class="filter-bar">
+            <select id="upcoming-filter" class="filter-select" onchange="renderUpcoming()">
+                <option value="all">Все</option>
+                <option value="once">Разовые</option>
+                <option value="monthly">Цикличные</option>
+                <option value="yearly">Ежегодные</option>
+            </select>
+            <select id="upcoming-range" class="filter-select" onchange="renderUpcoming()">
+                <option value="7">За 7 дней</option>
+                <option value="14">За 14 дней</option>
+                <option value="30" selected>За 30 дней</option>
+                <option value="60">За 60 дней</option>
+            </select>
+        </div>
+
         <div id="upcoming-list" class="event-container"></div>
     </div>
 
@@ -116,6 +133,21 @@
     <div id="all-screen" class="screen" style="display: none;">
         <button class="back-btn" onclick="showScreen('main')">← Назад</button>
         <h2>📂 Все события</h2>
+
+        <!-- Filter by type + sort (date / group by month) -->
+        <div class="filter-bar">
+            <select id="all-filter" class="filter-select" onchange="renderAllEvents()">
+                <option value="all">Все</option>
+                <option value="once">Разовые</option>
+                <option value="monthly">Цикличные</option>
+                <option value="yearly">Ежегодные</option>
+            </select>
+            <select id="all-sort" class="filter-select" onchange="renderAllEvents()">
+                <option value="date">По дате</option>
+                <option value="month">По месяцу</option>
+            </select>
+        </div>
+
         <div id="all-list" class="event-container"></div>
     </div>
 
@@ -142,8 +174,10 @@
                 <strong>Дата:</strong> <span id="modal-date"></span>
                 &nbsp;&nbsp;
                 <strong>Время:</strong> <span id="modal-time"></span>
-                <span id="modal-importance-icon"></span>
             </p>
+
+            <!-- Live countdown to the next occurrence -->
+            <div id="modal-countdown" class="modal-countdown"></div>
 
             <p><strong>Примечания:</strong></p>
             <div id="modal-notes-display" class="notes-display-box"></div>
