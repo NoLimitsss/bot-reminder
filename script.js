@@ -37,6 +37,64 @@ if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
 
 
 /* ============================================================
+   1.5 ACCESS CONTROL (frontend gate)
+   ============================================================
+   Soft lock: only the Telegram IDs listed below see the app.
+   Everyone else (and anyone opening the URL outside Telegram)
+   gets a "доступ ограничен" screen.
+
+   ⚠️ This runs in the browser on UNVERIFIED data
+   (tg.initDataUnsafe), so a technical user could bypass it via
+   DevTools. It's enough to hide a work-in-progress from casual
+   testers, but it is NOT real security. Real protection must
+   live on the BOT BACKEND, which validates initData's hash with
+   the bot token before trusting the user id.
+   ============================================================ */
+const ALLOWED_USER_IDS = [
+    // 👉 ВПИШИ СЮДА СВОЙ Telegram ID (узнать: напиши боту @userinfobot).
+    //    Пока стоит заглушка — замени её, иначе доступа не будет даже у тебя.
+    466153252
+];
+
+function isAllowedUser() {
+    const user = tg.initDataUnsafe && tg.initDataUnsafe.user;
+    if (!user) return false; // нет пользователя (открыто вне Telegram) → блок
+    return ALLOWED_USER_IDS.includes(user.id);
+}
+
+// Local development / preview: open the app from a file or localhost.
+// The gate is skipped here so you can always see your own work in progress.
+// On the real (deployed) domain this returns false → the gate is enforced.
+function isDevEnvironment() {
+    const host = location.hostname;
+    return location.protocol === 'file:'
+        || host === 'localhost'
+        || host === '127.0.0.1'
+        || host === ''
+        || host.endsWith('.local');
+}
+
+function showAccessDenied() {
+    const lock = document.createElement('div');
+    lock.style.cssText = [
+        'position:fixed', 'top:0', 'left:0', 'right:0', 'bottom:0',
+        'z-index:10001', 'display:flex', 'flex-direction:column',
+        'align-items:center', 'justify-content:center',
+        'text-align:center', 'padding:30px', 'gap:12px',
+        'background:var(--tg-theme-bg-color, #1c1c1e)',
+        'color:var(--tg-theme-text-color, #ffffff)'
+    ].join(';');
+    lock.innerHTML = `
+        <div style="font-size:48px;">🔒</div>
+        <div style="font-size:20px; font-weight:700;">Доступ ограничен</div>
+        <div style="font-size:14px; color:var(--tg-theme-hint-color, #8e8e93); max-width:280px;">
+            Приложение в разработке и пока доступно только владельцу.
+        </div>`;
+    document.body.appendChild(lock);
+}
+
+
+/* ============================================================
    2. CONSTANTS & TEST DATA
    ============================================================ */
 const MONTHS_FULL = [
@@ -487,22 +545,119 @@ function deleteEvent() {
 
 
 /* ============================================================
-   9. TIME PICKER
+   9. TIME PICKER (custom scroll-wheel, iOS-style)
+   ============================================================
+   The hidden <input type="time" id="real-time"> stays in the DOM
+   purely as the value store (saveEvent/editEvent read & write it).
+   The visible UI is a custom two-column wheel (hours / minutes),
+   so it looks right inside Telegram with no extra libraries.
    ============================================================ */
+const TP_ITEM_HEIGHT = 40; // must match .tp-item height in CSS
+
+// Opens the wheel picker, seeded from the current value (or "now")
 function pickTime() {
-    const input = document.getElementById('real-time');
-    input.focus();
-    if (input.showPicker) input.showPicker();
-    else input.click();
+    const overlay = document.getElementById('time-picker-overlay');
+    const hoursCol = document.getElementById('tp-hours');
+    const minsCol = document.getElementById('tp-minutes');
+
+    const current = document.getElementById('real-time').value;
+    let h, m;
+    if (/^\d{2}:\d{2}$/.test(current)) {
+        [h, m] = current.split(':').map(Number);
+    } else {
+        h = new Date().getHours();
+        m = 0;
+    }
+
+    buildWheel(hoursCol, 24);
+    buildWheel(minsCol, 60);
+
+    overlay.style.display = 'flex';
+
+    // Scroll to the seeded values once the sheet is laid out
+    requestAnimationFrame(() => {
+        setWheel(hoursCol, h);
+        setWheel(minsCol, m);
+        highlightCentered(hoursCol);
+        highlightCentered(minsCol);
+    });
 }
 
+// Confirms (confirmed=true) or cancels the picker
+function closeTimePicker(confirmed) {
+    const overlay = document.getElementById('time-picker-overlay');
+
+    if (confirmed) {
+        const h = wheelValue(document.getElementById('tp-hours'));
+        const m = wheelValue(document.getElementById('tp-minutes'));
+        const value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        document.getElementById('real-time').value = value;
+        document.getElementById('time-btn').innerText = `⏰ ${value}`;
+    }
+
+    overlay.style.display = 'none';
+}
+
+// Clears the chosen time (event is saved with no time)
+function clearTime() {
+    document.getElementById('real-time').value = '';
+    document.getElementById('time-btn').innerText = '⏰ Выбрать время';
+    closeTimePicker(false);
+}
+
+// Fills a column with padded numbers 0..count-1, wrapped in centering spacers
+function buildWheel(columnEl, count) {
+    columnEl.innerHTML = '<div class="tp-spacer"></div>';
+    for (let i = 0; i < count; i++) {
+        const item = document.createElement('div');
+        item.className = 'tp-item';
+        item.textContent = String(i).padStart(2, '0');
+        item.addEventListener('click', () => {
+            columnEl.scrollTo({ top: i * TP_ITEM_HEIGHT, behavior: 'smooth' });
+        });
+        columnEl.appendChild(item);
+    }
+    columnEl.insertAdjacentHTML('beforeend', '<div class="tp-spacer"></div>');
+}
+
+// The value currently centered in a column
+function wheelValue(columnEl) {
+    return Math.round(columnEl.scrollTop / TP_ITEM_HEIGHT);
+}
+
+// Scrolls a column so `value` sits in the center band
+function setWheel(columnEl, value) {
+    columnEl.scrollTop = value * TP_ITEM_HEIGHT;
+}
+
+// Visually emphasises the centered item as the wheel scrolls
+function highlightCentered(columnEl) {
+    const idx = wheelValue(columnEl);
+    columnEl.querySelectorAll('.tp-item').forEach((el, i) => {
+        el.classList.toggle('tp-item--active', i === idx);
+    });
+}
+
+// Wires scroll highlighting + backdrop-tap-to-close (runs once at startup)
 function initTimePicker() {
-    const input = document.getElementById('real-time');
-    if (!input) return;
-    input.addEventListener('change', function () {
-        if (this.value) {
-            document.getElementById('time-btn').innerText = `⏰ ${this.value}`;
-        }
+    const overlay = document.getElementById('time-picker-overlay');
+    if (!overlay) return;
+
+    ['tp-hours', 'tp-minutes'].forEach(id => {
+        const col = document.getElementById(id);
+        let ticking = false;
+        col.addEventListener('scroll', () => {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => {
+                highlightCentered(col);
+                ticking = false;
+            });
+        });
+    });
+
+    overlay.addEventListener('click', e => {
+        if (e.target === overlay) closeTimePicker(false);
     });
 }
 
@@ -895,6 +1050,13 @@ function initNotesFieldScrolling() {
    18. APP INIT
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
+    // Access gate: block the UI for anyone not on the allowlist.
+    // Skipped on localhost / file:// so local dev & preview still work.
+    if (!isDevEnvironment() && !isAllowedUser()) {
+        showAccessDenied();
+        return;
+    }
+
     renderFaq();
     initTimePicker();
     initNotesFieldScrolling();

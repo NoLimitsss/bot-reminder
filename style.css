@@ -703,6 +703,139 @@ body {
 
 
 /* ============================================================
+   8.5 TIME PICKER (custom scroll-wheel)
+   ============================================================ */
+.time-picker-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.time-picker-sheet {
+    width: 100%;
+    max-width: 480px;
+    background: var(--tg-theme-bg-color, var(--bg));
+    border-radius: 20px 20px 0 0;
+    padding: 12px 16px 20px;
+    box-sizing: border-box;
+    animation: tp-slide-up 0.25s ease-out;
+}
+
+@keyframes tp-slide-up {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+}
+
+.time-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.tp-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--tg-theme-text-color, var(--text));
+}
+
+.tp-cancel, .tp-done {
+    background: none;
+    border: none;
+    font-size: 16px;
+    padding: 8px 4px;
+    cursor: pointer;
+    color: var(--tg-theme-link-color);
+}
+
+.tp-done {
+    font-weight: 700;
+}
+
+/* Two wheels + a fixed center band */
+.time-picker-wheels {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 200px;
+}
+
+.tp-column {
+    height: 200px;
+    width: 72px;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    text-align: center;
+}
+
+.tp-column::-webkit-scrollbar {
+    display: none;
+}
+
+/* Spacers let the first/last item reach the center band */
+.tp-spacer {
+    height: 80px;
+}
+
+.tp-item {
+    height: 40px;
+    line-height: 40px;
+    scroll-snap-align: center;
+    font-size: 22px;
+    color: var(--tg-theme-hint-color, var(--hint));
+    cursor: pointer;
+    transition: color 0.15s, transform 0.15s;
+}
+
+.tp-item--active {
+    color: var(--tg-theme-text-color, var(--text));
+    font-weight: 700;
+    transform: scale(1.18);
+}
+
+.tp-colon {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--tg-theme-text-color, var(--text));
+}
+
+.tp-selection-band {
+    position: absolute;
+    top: 80px;
+    height: 40px;
+    left: 0;
+    right: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.25);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    pointer-events: none;
+}
+
+.tp-clear {
+    width: 100%;
+    margin-top: 14px;
+    background: transparent;
+    border: 1px solid var(--tg-theme-hint-color, var(--hint));
+    color: var(--tg-theme-hint-color, var(--hint));
+    padding: 11px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+
+/* ============================================================
    9. FAQ ACCORDION
    ============================================================ */
 #faq-list {

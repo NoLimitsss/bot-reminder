@@ -210,6 +210,27 @@
 
 
     <!-- ============================================================
+         TIME PICKER (custom scroll-wheel)
+         ============================================================ -->
+    <div id="time-picker-overlay" class="time-picker-overlay" style="display: none;">
+        <div class="time-picker-sheet">
+            <div class="time-picker-header">
+                <button type="button" class="tp-cancel" onclick="closeTimePicker(false)">Отмена</button>
+                <span class="tp-title">Время</span>
+                <button type="button" class="tp-done" onclick="closeTimePicker(true)">Готово</button>
+            </div>
+            <div class="time-picker-wheels">
+                <div class="tp-column" id="tp-hours"></div>
+                <div class="tp-colon">:</div>
+                <div class="tp-column" id="tp-minutes"></div>
+                <div class="tp-selection-band"></div>
+            </div>
+            <button type="button" class="tp-clear" onclick="clearTime()">Сбросить время</button>
+        </div>
+    </div>
+
+
+    <!-- ============================================================
          SCRIPTS
          ============================================================ -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
