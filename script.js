@@ -367,13 +367,16 @@ async function renderUpcoming() {
     }
 
     const now = new Date();
+    // Lower bound = start of today, so all-day (no-time) events dated today still
+    // count as upcoming even though their time is 00:00 and is technically "past".
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const limit = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
 
     const events = all
         .filter(e => filter === 'all' || e.type === filter)
         .filter(e => {
             const occ = getNextOccurrence(e);
-            return occ >= now && occ <= limit;
+            return occ >= startOfToday && occ <= limit;
         });
 
     container.innerHTML = '';
