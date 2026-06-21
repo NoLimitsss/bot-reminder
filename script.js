@@ -154,6 +154,9 @@ const EventStore = (() => {
             ...options,
             headers: {
                 'Content-Type': 'application/json',
+                // Signed Telegram data — the server verifies this (can't be forged)
+                'X-Init-Data': (tg.initData || ''),
+                // Plain id — used only by a local dev server (ignored in production)
                 'X-User-Id': String(getUserId()),
                 ...(options.headers || {})
             }
