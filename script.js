@@ -37,34 +37,16 @@ if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
 
 
 /* ============================================================
-   1.5 ACCESS CONTROL (frontend gate)
+   1.5 ENVIRONMENT
    ============================================================
-   Soft lock: only the Telegram IDs listed below see the app.
-   Everyone else (and anyone opening the URL outside Telegram)
-   gets a "доступ ограничен" screen.
-
-   ⚠️ This runs in the browser on UNVERIFIED data
-   (tg.initDataUnsafe), so a technical user could bypass it via
-   DevTools. It's enough to hide a work-in-progress from casual
-   testers, but it is NOT real security. Real protection must
-   live on the BOT BACKEND, which validates initData's hash with
-   the bot token before trusting the user id.
+   Access control now lives on the SERVER (it verifies Telegram's
+   signed initData and checks ALLOWED_USER_IDS). The old frontend
+   "доступ ограничен" stub is gone — the UI is harmless without
+   data, and the data is protected server-side.
    ============================================================ */
-const ALLOWED_USER_IDS = [
-    // 👉 ВПИШИ СЮДА СВОЙ Telegram ID (узнать: напиши боту @userinfobot).
-    //    Пока стоит заглушка — замени её, иначе доступа не будет даже у тебя.
-    466153252
-];
 
-function isAllowedUser() {
-    const user = tg.initDataUnsafe && tg.initDataUnsafe.user;
-    if (!user) return false; // нет пользователя (открыто вне Telegram) → блок
-    return ALLOWED_USER_IDS.includes(user.id);
-}
-
-// Local development / preview: open the app from a file or localhost.
-// The gate is skipped here so you can always see your own work in progress.
-// On the real (deployed) domain this returns false → the gate is enforced.
+// Local development / preview: opened from a file or localhost.
+// Used to pick the API base (localhost vs production).
 function isDevEnvironment() {
     const host = location.hostname;
     return location.protocol === 'file:'
@@ -72,25 +54,6 @@ function isDevEnvironment() {
         || host === '127.0.0.1'
         || host === ''
         || host.endsWith('.local');
-}
-
-function showAccessDenied() {
-    const lock = document.createElement('div');
-    lock.style.cssText = [
-        'position:fixed', 'top:0', 'left:0', 'right:0', 'bottom:0',
-        'z-index:10001', 'display:flex', 'flex-direction:column',
-        'align-items:center', 'justify-content:center',
-        'text-align:center', 'padding:30px', 'gap:12px',
-        'background:var(--tg-theme-bg-color, #1c1c1e)',
-        'color:var(--tg-theme-text-color, #ffffff)'
-    ].join(';');
-    lock.innerHTML = `
-        <div style="font-size:48px;">🔒</div>
-        <div style="font-size:20px; font-weight:700;">Доступ ограничен</div>
-        <div style="font-size:14px; color:var(--tg-theme-hint-color, #8e8e93); max-width:280px;">
-            Приложение в разработке и пока доступно только владельцу.
-        </div>`;
-    document.body.appendChild(lock);
 }
 
 
@@ -1114,13 +1077,6 @@ function initNotesFieldScrolling() {
    18. APP INIT
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
-    // Access gate: block the UI for anyone not on the allowlist.
-    // Skipped on localhost / file:// so local dev & preview still work.
-    if (!isDevEnvironment() && !isAllowedUser()) {
-        showAccessDenied();
-        return;
-    }
-
     renderFaq();
     initTimePicker();
     initNotesFieldScrolling();
