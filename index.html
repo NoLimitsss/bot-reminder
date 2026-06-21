@@ -31,7 +31,7 @@
             <button class="menu-item" onclick="showScreen('all')">
                 <span style="font-size: 24px;">📂</span> Все события
             </button>
-            <button class="menu-item">
+            <button class="menu-item" onclick="showScreen('settings')">
                 <span style="font-size: 24px;">⚙️</span> Настройки
             </button>
         </div>
@@ -185,6 +185,86 @@
         <button class="back-btn" onclick="showScreen('main')">← Назад</button>
         <h1>Часто задаваемые вопросы</h1>
         <div id="faq-list"></div>
+    </div>
+
+
+    <!-- ============================================================
+         SETTINGS SCREEN
+         ============================================================ -->
+    <div id="settings-screen" class="screen" style="display: none;">
+        <div class="screen-header">
+            <button class="back-btn" onclick="showScreen('main')">← Назад</button>
+            <h2 class="screen-title">⚙️ Настройки</h2>
+        </div>
+
+        <!-- Напоминания -->
+        <div class="settings-section">
+            <div class="settings-section-title">🔔 Напоминания</div>
+
+            <div class="setting-row">
+                <label class="setting-label">Режим напоминаний</label>
+                <div class="type-selector-wrapper">
+                    <div class="type-option" onclick="selectReminderMode('daily')">Каждый день</div>
+                    <div class="type-option" onclick="selectReminderMode('checkpoints')">Чекпоинты</div>
+                </div>
+            </div>
+
+            <!-- daily mode: how many days before -->
+            <div class="setting-row" id="daily-days-row">
+                <label class="setting-label">Начинать напоминать за</label>
+                <select id="daily-days-select" class="filter-select">
+                    <option value="3">3 дня</option>
+                    <option value="5">5 дней</option>
+                    <option value="7">7 дней</option>
+                    <option value="10">10 дней</option>
+                    <option value="14">14 дней</option>
+                </select>
+            </div>
+
+            <!-- checkpoints mode: which moments -->
+            <div class="setting-row" id="checkpoints-row" style="display: none;">
+                <label class="setting-label">Напоминать в моменты</label>
+                <div class="checkpoint-chips">
+                    <div class="checkpoint-chip" data-offset="30" onclick="toggleChip(this)">За месяц</div>
+                    <div class="checkpoint-chip" data-offset="14" onclick="toggleChip(this)">За 2 недели</div>
+                    <div class="checkpoint-chip" data-offset="7" onclick="toggleChip(this)">За неделю</div>
+                    <div class="checkpoint-chip" data-offset="3" onclick="toggleChip(this)">За 3 дня</div>
+                    <div class="checkpoint-chip" data-offset="1" onclick="toggleChip(this)">За день</div>
+                    <div class="checkpoint-chip" data-offset="0" onclick="toggleChip(this)">В день</div>
+                </div>
+            </div>
+
+            <div class="setting-row">
+                <label class="setting-label">Время утренних напоминаний</label>
+                <select id="morning-hour-select" class="filter-select"></select>
+            </div>
+
+            <div class="importance-toggle-wrapper">
+                <span class="importance-toggle-label">Детальные в день события (12ч/3ч/15м)</span>
+                <label class="switch">
+                    <input type="checkbox" id="detailed-toggle">
+                    <span class="switch-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Данные -->
+        <div class="settings-section">
+            <div class="settings-section-title">🗂 Данные</div>
+            <button class="delete-btn settings-wide-btn" onclick="clearAllEvents()">Удалить все мои события</button>
+        </div>
+
+        <!-- О боте -->
+        <div class="settings-section">
+            <div class="settings-section-title">ℹ️ О боте</div>
+            <div class="about-text">
+                Версия 1.0<br>
+                Связь: <a href="https://t.me/StarlightLion">@StarlightLion</a><br>
+                Поддержать проект — хостинг VPS (480&nbsp;руб/мес.)
+            </div>
+        </div>
+
+        <button id="settings-save-btn" class="save-btn" onclick="saveSettings()">Сохранить</button>
     </div>
 
 

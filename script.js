@@ -111,6 +111,21 @@ function getUserId() {
     return user ? user.id : DEV_USER_ID;
 }
 
+// Shared API call with the auth headers (used by settings; EventStore has its own copy)
+async function apiRequest(path, options = {}) {
+    const res = await fetch(API_BASE + path, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Init-Data': (tg.initData || ''),
+            'X-User-Id': String(getUserId()),
+            ...(options.headers || {})
+        }
+    });
+    if (!res.ok) throw new Error(`API ${res.status} ${res.statusText}`);
+    return res.status === 204 ? null : res.json();
+}
+
 const EventStore = (() => {
     async function request(path, options = {}) {
         const res = await fetch(API_BASE + path, {
@@ -215,6 +230,7 @@ function showScreen(screenName) {
     target.style.display = 'flex';
     if (screenName === 'all') renderAllEvents();
     if (screenName === 'upcoming') renderUpcoming();
+    if (screenName === 'settings') renderSettings();
 }
 
 // Opens the add-event screen in "create new" mode (clears any leftover edit state / form values)
@@ -1055,6 +1071,111 @@ function toggleFaq(index) {
     if (!isVisible) {
         const item = answer.closest('.faq-item');
         setTimeout(() => item.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    }
+}
+
+
+/* ============================================================
+   16.5 SETTINGS SCREEN
+   ============================================================ */
+let settingsMode = 'daily';
+
+async function renderSettings() {
+    populateMorningHours();
+
+    let s;
+    try {
+        s = await apiRequest('/settings');
+    } catch (err) {
+        console.error(err);
+        s = { reminder_mode: 'daily', daily_days: 5, checkpoints: [7, 1, 0], morning_hour: 8, detailed: true };
+    }
+
+    setReminderMode(s.reminder_mode);
+    document.getElementById('daily-days-select').value = String(s.daily_days);
+
+    document.querySelectorAll('.checkpoint-chip').forEach(chip => {
+        const off = parseInt(chip.dataset.offset, 10);
+        chip.classList.toggle('active', s.checkpoints.includes(off));
+    });
+
+    document.getElementById('morning-hour-select').value = String(s.morning_hour);
+    document.getElementById('detailed-toggle').checked = !!s.detailed;
+}
+
+// Fills the morning-hour <select> with 00:00..23:00 (once)
+function populateMorningHours() {
+    const sel = document.getElementById('morning-hour-select');
+    if (sel.options.length) return;
+    for (let h = 0; h <= 23; h++) {
+        sel.add(new Option(`${String(h).padStart(2, '0')}:00`, h));
+    }
+}
+
+// Switches between "daily" and "checkpoints", showing the matching sub-control
+function setReminderMode(mode) {
+    settingsMode = mode;
+    const options = document.querySelectorAll('#settings-screen .type-option');
+    options.forEach(o => o.classList.remove('active'));
+    const idx = mode === 'checkpoints' ? 1 : 0;
+    if (options[idx]) options[idx].classList.add('active');
+
+    document.getElementById('daily-days-row').style.display = mode === 'daily' ? 'flex' : 'none';
+    document.getElementById('checkpoints-row').style.display = mode === 'checkpoints' ? 'flex' : 'none';
+}
+
+function selectReminderMode(mode) {
+    setReminderMode(mode);
+}
+
+function toggleChip(el) {
+    el.classList.toggle('active');
+}
+
+async function saveSettings() {
+    const checkpoints = Array.from(document.querySelectorAll('.checkpoint-chip.active'))
+        .map(c => parseInt(c.dataset.offset, 10));
+
+    if (settingsMode === 'checkpoints' && checkpoints.length === 0) {
+        alert('Выберите хотя бы один момент для напоминаний.');
+        return;
+    }
+
+    const payload = {
+        reminder_mode: settingsMode,
+        daily_days: parseInt(document.getElementById('daily-days-select').value, 10),
+        checkpoints: checkpoints,
+        morning_hour: parseInt(document.getElementById('morning-hour-select').value, 10),
+        detailed: document.getElementById('detailed-toggle').checked
+    };
+
+    try {
+        await apiRequest('/settings', { method: 'PUT', body: JSON.stringify(payload) });
+    } catch (err) {
+        console.error(err);
+        alert('Не удалось сохранить настройки (бэкенд недоступен).');
+        return;
+    }
+
+    const btn = document.getElementById('settings-save-btn');
+    btn.disabled = true;
+    btn.classList.add('saved');
+    btn.innerText = '✓ Сохранено';
+    setTimeout(() => {
+        btn.disabled = false;
+        btn.classList.remove('saved');
+        btn.innerText = 'Сохранить';
+    }, 1500);
+}
+
+async function clearAllEvents() {
+    if (!confirm('Удалить ВСЕ ваши события? Это действие нельзя отменить.')) return;
+    try {
+        const r = await apiRequest('/events', { method: 'DELETE' });
+        alert(`Удалено событий: ${r.deleted}`);
+    } catch (err) {
+        console.error(err);
+        alert('Не удалось удалить (бэкенд недоступен).');
     }
 }
 

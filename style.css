@@ -854,6 +854,72 @@ body {
     margin-top: 10px;
 }
 
+/* ============================================================
+   10. SETTINGS SCREEN
+   ============================================================ */
+.settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.settings-section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--tg-theme-text-color, var(--text));
+}
+
+/* One labelled setting: muted label on top (like .filter-label), control below */
+.setting-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.setting-label {
+    font-size: 12px;
+    color: var(--tg-theme-hint-color, var(--hint));
+    padding-left: 2px;
+}
+
+/* Checkpoint chips (multi-select) */
+.checkpoint-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.checkpoint-chip {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.checkpoint-chip.active {
+    background: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border-color: var(--tg-theme-button-color);
+}
+
+.settings-wide-btn {
+    width: 100%;
+}
+
+.about-text {
+    font-size: 13px;
+    color: var(--tg-theme-hint-color, var(--hint));
+    line-height: 1.7;
+}
+
+.about-text a {
+    color: var(--tg-theme-link-color);
+}
+
+
 /* Small muted copyright in the main footer */
 .copyright {
     text-align: center;
