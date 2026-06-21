@@ -1242,6 +1242,22 @@ function initNotesFieldScrolling() {
     });
 }
 
+// Onboarding: shown once on first launch (a flag in localStorage remembers it)
+function maybeShowOnboarding() {
+    if (localStorage.getItem('onboarding_seen')) return;
+    const nameEl = document.getElementById('onboarding-name');
+    if (nameEl) {
+        const u = tg.initDataUnsafe && tg.initDataUnsafe.user;
+        nameEl.innerText = (u && u.first_name) ? u.first_name : 'гость';
+    }
+    document.getElementById('onboarding-overlay').style.display = 'block';
+}
+
+function closeOnboarding() {
+    localStorage.setItem('onboarding_seen', '1');
+    document.getElementById('onboarding-overlay').style.display = 'none';
+}
+
 
 /* ============================================================
    18. APP INIT
@@ -1251,6 +1267,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initTimePicker();
     initNotesFieldScrolling();
     initHoldToDelete();
+    maybeShowOnboarding();
 
     updateClock();
     setInterval(updateClock, 1000);
