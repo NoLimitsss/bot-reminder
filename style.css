@@ -118,6 +118,17 @@ body {
     padding-right: 6px;
 }
 
+/* Longer titles (e.g. "Ближайшие события") — smaller + never wraps onto "Назад" */
+.screen-title.long {
+    font-size: 17px;
+    white-space: nowrap;
+}
+
+/* Keep the back button from being squeezed by a long title */
+.screen-header .back-btn {
+    flex-shrink: 0;
+}
+
 .empty-state {
     text-align: center;
     color: var(--tg-theme-hint-color, var(--hint));
@@ -148,6 +159,7 @@ body {
 .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    grid-auto-rows: 1fr;   /* все 4 кнопки одинаковой высоты, даже если текст переносится */
     gap: 16px;
     width: 100%;
     max-width: 420px;
@@ -842,13 +854,13 @@ body {
     margin-top: 10px;
 }
 
-/* Small muted copyright under the FAQ */
+/* Small muted copyright in the main footer */
 .copyright {
     text-align: center;
     font-size: 11px;
     color: var(--tg-theme-hint-color, var(--hint));
     opacity: 0.7;
-    padding: 18px 0 10px;
+    margin-top: 10px;
 }
 
 .faq-item {
