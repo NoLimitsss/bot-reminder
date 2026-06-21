@@ -139,7 +139,7 @@ const WEEKDAYS = ['Воскресенье', 'Понедельник', 'Втор�
    ============================================================ */
 const API_BASE = isDevEnvironment()
     ? 'http://localhost:8000'
-    : 'https://your-api-domain';        // 👉 впиши боевой адрес API перед деплоем
+    : 'https://82.202.130.158.sslip.io';   // prod: API на VPS (фронт на GitHub Pages)
 
 const DEV_USER_ID = 466153252;          // used only outside Telegram (local testing)
 
