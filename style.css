@@ -1005,28 +1005,56 @@ body {
     margin: 0 0 16px;
 }
 
-.onboarding-img {
-    display: block;
-    width: 100%;
-    max-width: 280px;
-    margin: 0 auto 16px;
-    border-radius: 14px;
-}
-
 .onboarding-content p {
     font-size: 14px;
     line-height: 1.6;
-    text-align: justify;
-    hyphens: auto;
+    text-align: left;
 }
 
 .onboarding-content a {
     color: var(--tg-theme-link-color);
 }
 
+.onboarding-important {
+    font-weight: 700;
+    margin: 18px 0 8px;
+}
+
+.onboarding-list {
+    margin: 0 0 16px;
+    padding-left: 22px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.onboarding-list li {
+    margin-bottom: 10px;
+}
+
+/* Decorative italic quote with a staircase indent */
+.onboarding-quote {
+    margin: 22px 0 24px;
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--tg-theme-text-color, var(--text));
+    opacity: 0.85;
+}
+
+.onboarding-quote .q2 { margin-left: 2.5em; }
+.onboarding-quote .q3 { margin-left: 4.8em; }
+
+/* Modest "Понятно" button — present but not attention-grabbing */
 .onboarding-btn {
-    width: 100%;
-    margin-top: 16px;
+    display: block;
+    margin: 0 auto;
+    padding: 10px 28px;
+    background: transparent;
+    color: var(--tg-theme-link-color);
+    border: 1px solid var(--tg-theme-hint-color, var(--hint));
+    border-radius: 12px;
+    font-size: 15px;
+    cursor: pointer;
 }
 
 .faq-item {

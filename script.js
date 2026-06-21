@@ -787,7 +787,7 @@ function initOnceMode() {
         monthSelect.innerHTML = '<option value="">Месяц</option>';
         const startMonth = (y === curY) ? curM : 1;
         for (let i = startMonth; i <= 12; i++) {
-            monthSelect.add(new Option(MONTHS_SHORT[i - 1], i.toString().padStart(2, '0')));
+            monthSelect.add(new Option(MONTHS_FULL[i - 1], i.toString().padStart(2, '0')));
         }
         if (savedM && parseInt(savedM) >= startMonth) monthSelect.value = savedM;
     }
