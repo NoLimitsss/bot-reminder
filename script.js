@@ -1050,6 +1050,12 @@ function toggleFaq(index) {
     const isVisible = answer.style.display === 'block';
     answer.style.display = isVisible ? 'none' : 'block';
     icon.innerText = isVisible ? '▼' : '▲';
+
+    // On open, bring the question to the top so the answer is in view (no extra scroll)
+    if (!isVisible) {
+        const item = answer.closest('.faq-item');
+        setTimeout(() => item.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    }
 }
 
 

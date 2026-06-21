@@ -842,6 +842,15 @@ body {
     margin-top: 10px;
 }
 
+/* Small muted copyright under the FAQ */
+.copyright {
+    text-align: center;
+    font-size: 11px;
+    color: var(--tg-theme-hint-color, var(--hint));
+    opacity: 0.7;
+    padding: 18px 0 10px;
+}
+
 .faq-item {
     margin-bottom: 8px;
     border-radius: 12px;
