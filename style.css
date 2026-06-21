@@ -183,10 +183,8 @@ body {
     gap: 10px;
 }
 
-.menu-item:active {
-    transform: scale(0.95);
-    background: var(--tg-theme-hint-color, var(--hint));
-}
+/* Press effect intentionally removed: screens switch instantly, so the :active
+   state used to flash on top of the already-opened screen. */
 
 /* Clock block — fills remaining vertical space */
 .time-container {
@@ -537,6 +535,12 @@ body {
     align-self: center;
 }
 
+/* Event already happened — green */
+.event-timer--passed {
+    color: #34c759;
+    border-color: #34c759;
+}
+
 /* Filter / sort bar (all events + upcoming) */
 .filter-block {
     display: flex;
@@ -814,7 +818,7 @@ body {
 .tp-item--active {
     color: var(--tg-theme-text-color, var(--text));
     font-weight: 700;
-    transform: scale(1.18);
+    /* no scale transform — it caused the wheels to jitter sideways while scrolling */
 }
 
 .tp-colon {
@@ -880,6 +884,42 @@ body {
     font-size: 12px;
     color: var(--tg-theme-hint-color, var(--hint));
     padding-left: 2px;
+}
+
+/* Tiny grey clarifier under a setting */
+.setting-hint {
+    font-size: 11px;
+    color: var(--tg-theme-hint-color, var(--hint));
+    opacity: 0.8;
+    margin-top: -6px;
+    padding-left: 2px;
+}
+
+/* Hold-to-delete: a red bar fills over 5s while the button is held */
+.hold-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.hold-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background: rgba(255, 59, 48, 0.35);
+    transition: width 0s;
+    pointer-events: none;
+}
+
+.hold-btn.holding .hold-fill {
+    width: 100%;
+    transition: width 5s linear;
+}
+
+.hold-label {
+    position: relative;
+    z-index: 1;
 }
 
 /* Checkpoint chips (multi-select) */

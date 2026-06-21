@@ -386,9 +386,12 @@ function buildEventCard(event, index, options = {}) {
         ? '<div class="event-important-badge">⚠️</div>'
         : '';
 
-    const timerHtml = showTimer
-        ? `<div class="event-timer">${getTimeRemaining(event)}</div>`
-        : '';
+    let timerHtml = '';
+    if (showTimer) {
+        const t = getTimeRemaining(event);
+        const cls = t === 'Уже наступило' ? 'event-timer event-timer--passed' : 'event-timer';
+        timerHtml = `<div class="${cls}">${t}</div>`;
+    }
 
     const card = document.createElement('div');
     // Type is encoded by the colored left border (see .event-card--*), not an icon
@@ -417,6 +420,9 @@ function formatEventDate(event) {
     if (event.type === 'monthly') {
         const periodText = event.period === '1' ? 'Каждый мес.' : `Раз в ${event.period} мес.`;
         return `${event.day}.${event.month} (${periodText})`;
+    }
+    if (event.type === 'yearly' && !event.year) {
+        return `${event.day}.${event.month}`;   // year is optional for yearly
     }
     return `${event.day}.${event.month}.${event.year}`;
 }
@@ -457,14 +463,16 @@ function getNextOccurrence(event) {
 
 function getTimeRemaining(event) {
     const now = new Date();
-    const target = getNextOccurrence(event);
-
-    const diff = target - now;
+    const diff = getNextOccurrence(event) - now;
     if (diff <= 0) return 'Уже наступило';
 
-    const days = Math.floor(diff / (24 * 60 * 60 * 1000));
-    const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-    return `${days > 0 ? days + ' дн. ' : ''}${hours} ч.`;
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+
+    // < 24h left → show hours + minutes; otherwise days + hours
+    if (days > 0) return `${days} дн. ${hours} ч.`;
+    return `${hours} ч. ${mins} мин.`;
 }
 
 // Russian plural helper: plural(2, 'день','дня','дней') -> 'дня'
@@ -547,7 +555,7 @@ function editEvent() {
     if (currentEvent.type === 'monthly') {
         document.getElementById('year-select').value = currentEvent.period;
     } else {
-        document.getElementById('year-select').value = currentEvent.year;
+        document.getElementById('year-select').value = currentEvent.year || '';
     }
 
     document.getElementById('real-time').value = currentEvent.time !== '—' ? currentEvent.time : '';
@@ -844,7 +852,7 @@ function initOnceMode() {
    to hold the period.
    ============================================================ */
 function initMonthlyMode() {
-    document.getElementById('date-picker-label').innerText = 'Укажите дату и период события:';
+    document.getElementById('date-picker-label').innerText = 'Укажите начало и цикличность события:';
 
     const daySelect = document.getElementById('day-select');
     const monthSelect = document.getElementById('month-select');
@@ -900,7 +908,7 @@ function initMonthlyMode() {
    reference / start year, defaulting to 2000).
    ============================================================ */
 function initYearlyMode() {
-    document.getElementById('date-picker-label').innerText = 'Укажите дату события (год опцион.):';
+    document.getElementById('date-picker-label').innerText = 'Укажите дату события (год — по желанию):';
 
     const daySelect = document.getElementById('day-select');
     const monthSelect = document.getElementById('month-select');
@@ -920,10 +928,12 @@ function initYearlyMode() {
         monthSelect.add(new Option(name, (i + 1).toString().padStart(2, '0')));
     });
 
-    // Year: 1900–2100, defaulting to 2000
-    yearSelect.innerHTML = '<option value="">Год</option>';
-    for (let y = 1900; y <= 2100; y++) yearSelect.add(new Option(y, y));
-    yearSelect.value = '2000';
+    // Year is OPTIONAL for yearly events — it's only informational (the recurrence
+    // ignores it). Default "—". Range: 1920..current year.
+    yearSelect.innerHTML = '<option value="">—</option>';
+    const curY = new Date().getFullYear();
+    for (let y = curY; y >= 1920; y--) yearSelect.add(new Option(y, y));
+    yearSelect.value = '';
 
     function validateDayMonth() {
         const d = parseInt(daySelect.value);
@@ -964,10 +974,15 @@ async function saveEvent() {
         return;
     }
 
-    if (!day || !month || !yearOrPeriod) {
+    // Year is optional for 'yearly' (only day+month required); 'monthly' needs a
+    // period; 'once' needs the full date.
+    const requiresYearOrPeriod = currentAddMode !== 'yearly';
+    if (!day || !month || (requiresYearOrPeriod && !yearOrPeriod)) {
         const missingFieldMsg = currentAddMode === 'monthly'
             ? 'Пожалуйста, заполните День, Месяц и Период!'
-            : 'Пожалуйста, выберите полную дату!';
+            : (currentAddMode === 'yearly'
+                ? 'Пожалуйста, выберите день и месяц!'
+                : 'Пожалуйста, выберите полную дату!');
         alert(missingFieldMsg);
         return;
     }
@@ -979,7 +994,7 @@ async function saveEvent() {
         type: currentAddMode,
         day,
         month,
-        year: currentAddMode === 'monthly' ? null : yearOrPeriod,
+        year: currentAddMode === 'monthly' ? null : (yearOrPeriod || null),
         period: currentAddMode === 'monthly' ? yearOrPeriod : null,
         time,
         important,
@@ -1169,7 +1184,6 @@ async function saveSettings() {
 }
 
 async function clearAllEvents() {
-    if (!confirm('Удалить ВСЕ ваши события? Это действие нельзя отменить.')) return;
     try {
         const r = await apiRequest('/events', { method: 'DELETE' });
         alert(`Удалено событий: ${r.deleted}`);
@@ -1177,6 +1191,35 @@ async function clearAllEvents() {
         console.error(err);
         alert('Не удалось удалить (бэкенд недоступен).');
     }
+}
+
+// "Hold for 5 seconds" delete button — a progress bar fills while held, then
+// asks for a final confirmation before wiping everything.
+function initHoldToDelete() {
+    const btn = document.getElementById('delete-all-btn');
+    if (!btn) return;
+    let timer = null;
+
+    const start = (e) => {
+        e.preventDefault();
+        btn.classList.add('holding');
+        timer = setTimeout(async () => {
+            btn.classList.remove('holding');
+            timer = null;
+            if (confirm('Вы точно хотите удалить ВСЕ события? Это нельзя отменить.')) {
+                await clearAllEvents();
+            }
+        }, 5000);
+    };
+    const cancel = () => {
+        btn.classList.remove('holding');
+        if (timer) { clearTimeout(timer); timer = null; }
+    };
+
+    btn.addEventListener('pointerdown', start);
+    btn.addEventListener('pointerup', cancel);
+    btn.addEventListener('pointerleave', cancel);
+    btn.addEventListener('pointercancel', cancel);
 }
 
 
@@ -1207,6 +1250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderFaq();
     initTimePicker();
     initNotesFieldScrolling();
+    initHoldToDelete();
 
     updateClock();
     setInterval(updateClock, 1000);

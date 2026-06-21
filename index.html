@@ -235,23 +235,27 @@
             </div>
 
             <div class="setting-row">
-                <label class="setting-label">Время утренних напоминаний</label>
+                <label class="setting-label">Отправлять напоминания в</label>
                 <select id="morning-hour-select" class="filter-select"></select>
             </div>
 
             <div class="importance-toggle-wrapper">
-                <span class="importance-toggle-label">Детальные в день события (12ч/3ч/15м)</span>
+                <span class="importance-toggle-label">Дополнительно напомнить за 12ч/3ч/15мин</span>
                 <label class="switch">
                     <input type="checkbox" id="detailed-toggle">
                     <span class="switch-slider"></span>
                 </label>
             </div>
+            <div class="setting-hint">только для событий со временем</div>
         </div>
 
         <!-- Данные -->
         <div class="settings-section">
             <div class="settings-section-title">🗂 Данные</div>
-            <button class="delete-btn settings-wide-btn" onclick="clearAllEvents()">Удалить все мои события</button>
+            <button class="delete-btn settings-wide-btn hold-btn" id="delete-all-btn">
+                <span class="hold-fill"></span>
+                <span class="hold-label">Удерживайте 5 сек, чтобы удалить всё</span>
+            </button>
         </div>
 
         <!-- О боте -->
