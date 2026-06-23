@@ -30,9 +30,46 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Show the user's first name in the header, if available
+// Greeting for the header: adapts to the time of day and remembers the last
+// visit. Same day + same time-slot as the previous visit -> "С возвращением";
+// any other case (new day, new slot, first ever visit) -> a time-of-day
+// greeting. The last visit (date + slot) is kept in localStorage.
+function getGreeting(name) {
+    const now = new Date();
+    const hour = now.getHours();
+    const today = now.toDateString();
+
+    let period, timeGreeting;
+    if (hour >= 5 && hour < 12) {
+        period = 'morning';
+        timeGreeting = `Доброе утро, ${name}!`;
+    } else if (hour >= 12 && hour < 18) {
+        period = 'day';
+        timeGreeting = `Добрый день, ${name}!`;
+    } else if (hour >= 18 && hour < 23) {
+        period = 'evening';
+        timeGreeting = `Добрый вечер, ${name}!`;
+    } else {
+        period = 'night';
+        timeGreeting = `Доброй ночи, ${name}!`;
+    }
+
+    const lastDate = localStorage.getItem('greeting_date');
+    const lastPeriod = localStorage.getItem('greeting_period');
+
+    localStorage.setItem('greeting_date', today);
+    localStorage.setItem('greeting_period', period);
+
+    if (lastDate === today && lastPeriod === period) {
+        return `С возвращением, ${name}!`;
+    }
+    return timeGreeting;
+}
+
+// Show a personalized greeting in the header, if Telegram gave us a user.
 if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-    document.getElementById('username').innerText = tg.initDataUnsafe.user.first_name;
+    const name = tg.initDataUnsafe.user.first_name;
+    document.getElementById('greeting').innerText = getGreeting(name);
 }
 
 
