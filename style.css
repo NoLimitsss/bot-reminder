@@ -850,6 +850,23 @@ body {
     font-size: 14px;
 }
 
+/* Date wheel picker: column headers + a wider column for month names */
+.dp-labels {
+    display: flex;
+    justify-content: space-around;
+    font-size: 13px;
+    color: var(--tg-theme-hint-color, var(--hint));
+    margin-bottom: 2px;
+}
+
+.dp-month-col {
+    width: 130px;
+}
+
+.dp-month-col .tp-item {
+    font-size: 18px;
+}
+
 
 /* ============================================================
    9. FAQ ACCORDION

@@ -594,6 +594,7 @@ function editEvent() {
     } else {
         document.getElementById('year-select').value = currentEvent.year || '';
     }
+    updateDateButton();
 
     document.getElementById('real-time').value = currentEvent.time !== '—' ? currentEvent.time : '';
     if (currentEvent.time && currentEvent.time !== '—') {
@@ -739,6 +740,179 @@ function initTimePicker() {
 
 
 /* ============================================================
+   9.5 DATE WHEEL PICKER (day / month / year)
+   ============================================================
+   The three <select>s (day/month/year) stay the hidden data model —
+   the mode functions populate them and validation runs on them. This
+   wheel sheet MIRRORS their current options and writes the chosen
+   values back, so it works for all modes (once/monthly/yearly) for free.
+   ============================================================ */
+
+// Reads {value,label} from a <select>'s options, skipping the empty placeholder.
+function optionsFromSelect(select) {
+    return Array.from(select.options)
+        .filter(o => o.value !== '')
+        .map(o => ({ value: o.value, label: o.textContent }));
+}
+
+// Fills a wheel column from a list of {value,label}; remembers values on the element.
+function buildDateColumn(columnEl, items) {
+    columnEl._values = items.map(it => it.value);
+    columnEl.innerHTML = '<div class="tp-spacer"></div>';
+    items.forEach((it, i) => {
+        const el = document.createElement('div');
+        el.className = 'tp-item';
+        el.textContent = it.label;
+        el.addEventListener('click', () => {
+            columnEl.scrollTo({ top: i * TP_ITEM_HEIGHT, behavior: 'smooth' });
+        });
+        columnEl.appendChild(el);
+    });
+    columnEl.insertAdjacentHTML('beforeend', '<div class="tp-spacer"></div>');
+}
+
+// The selected value of a date column (maps centered index -> stored value).
+function dateColumnValue(columnEl) {
+    const idx = wheelValue(columnEl);
+    return (columnEl._values && columnEl._values[idx]) || '';
+}
+
+// Scrolls a date column to the item whose value matches (or the first item).
+function setDateColumn(columnEl, value) {
+    const idx = columnEl._values ? columnEl._values.indexOf(value) : -1;
+    setWheel(columnEl, idx >= 0 ? idx : 0);
+}
+
+// Rebuilds the day column to match the month/year currently centered.
+function rebuildDayWheel() {
+    const daysCol = document.getElementById('dp-days');
+    const m = parseInt(dateColumnValue(document.getElementById('dp-months')), 10);
+    if (!m) return;
+    const yearVal = dateColumnValue(document.getElementById('dp-years'));
+    // monthly has no real year -> use a leap year so Feb 29 stays selectable
+    const y = (currentAddMode === 'monthly')
+        ? 2024
+        : (parseInt(yearVal, 10) || new Date().getFullYear());
+    const count = getDaysInMonth(y, m);
+
+    const prev = dateColumnValue(daysCol); // keep the day if it still fits
+    const items = [];
+    for (let i = 1; i <= count; i++) {
+        items.push({ value: String(i).padStart(2, '0'), label: String(i) });
+    }
+    buildDateColumn(daysCol, items);
+    requestAnimationFrame(() => {
+        setDateColumn(daysCol, prev);
+        highlightCentered(daysCol);
+    });
+}
+
+// Opens the date sheet, seeded from the current select values.
+function openDatePicker() {
+    const daySel = document.getElementById('day-select');
+    const monthSel = document.getElementById('month-select');
+    const yearSel = document.getElementById('year-select');
+
+    const daysCol = document.getElementById('dp-days');
+    const monthsCol = document.getElementById('dp-months');
+    const yearsCol = document.getElementById('dp-years');
+
+    // Month + third column mirror whatever the current mode set up
+    buildDateColumn(monthsCol, optionsFromSelect(monthSel));
+    buildDateColumn(yearsCol, optionsFromSelect(yearSel));
+
+    // Third column means "period" in monthly mode, otherwise the year
+    document.getElementById('dp-third-label').innerText =
+        (currentAddMode === 'monthly') ? 'Период' : 'Год';
+
+    document.getElementById('date-picker-overlay').style.display = 'flex';
+
+    requestAnimationFrame(() => {
+        setDateColumn(monthsCol, monthSel.value);
+        setDateColumn(yearsCol, yearSel.value);
+        highlightCentered(monthsCol);
+        highlightCentered(yearsCol);
+        rebuildDayWheel(); // build days from the seeded month/year
+        requestAnimationFrame(() => setDateColumn(daysCol, daySel.value));
+    });
+}
+
+// Confirms (writes back to the selects) or cancels the date sheet.
+function closeDatePicker(confirmed) {
+    const overlay = document.getElementById('date-picker-overlay');
+
+    if (confirmed) {
+        const d = dateColumnValue(document.getElementById('dp-days'));
+        const m = dateColumnValue(document.getElementById('dp-months'));
+        const third = dateColumnValue(document.getElementById('dp-years'));
+
+        const daySel = document.getElementById('day-select');
+        const monthSel = document.getElementById('month-select');
+        const yearSel = document.getElementById('year-select');
+
+        // Write back and trigger the existing validation/status logic
+        monthSel.value = m; monthSel.dispatchEvent(new Event('change'));
+        yearSel.value = third; yearSel.dispatchEvent(new Event('change'));
+        daySel.value = d; daySel.dispatchEvent(new Event('change'));
+
+        updateDateButton();
+    }
+
+    overlay.style.display = 'none';
+}
+
+// Updates the trigger button text from the current select values.
+function updateDateButton() {
+    const btn = document.getElementById('date-btn');
+    if (!btn) return;
+    const d = document.getElementById('day-select').value;
+    const m = document.getElementById('month-select').value;
+    const third = document.getElementById('year-select').value;
+
+    if (!d || !m) { btn.innerText = '📅 Выбрать дату'; return; }
+
+    const monthName = MONTHS_FULL[parseInt(m, 10) - 1];
+    let text = `📅 ${parseInt(d, 10)} ${monthName}`;
+    if (currentAddMode === 'monthly') {
+        if (third) text += `, раз в ${third} мес.`;
+    } else if (third) {
+        text += ` ${third}`;
+    }
+    btn.innerText = text;
+}
+
+// Wires scroll highlighting + day-rebuild on month/year change (runs once at startup).
+function initDatePicker() {
+    const overlay = document.getElementById('date-picker-overlay');
+    if (!overlay) return;
+
+    ['dp-days', 'dp-months', 'dp-years'].forEach(id => {
+        const col = document.getElementById(id);
+        let ticking = false;
+        col.addEventListener('scroll', () => {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => { highlightCentered(col); ticking = false; });
+        });
+    });
+
+    // When month or year settles after scrolling, rebuild the day wheel
+    ['dp-months', 'dp-years'].forEach(id => {
+        const col = document.getElementById(id);
+        let settleTimer;
+        col.addEventListener('scroll', () => {
+            clearTimeout(settleTimer);
+            settleTimer = setTimeout(rebuildDayWheel, 160);
+        });
+    });
+
+    overlay.addEventListener('click', e => {
+        if (e.target === overlay) closeDatePicker(false);
+    });
+}
+
+
+/* ============================================================
    10. DATE PICKER — MODE SWITCH (once / monthly / yearly)
    ============================================================ */
 function selectType(el, type) {
@@ -753,6 +927,8 @@ function updatePickerMode(mode) {
     if (mode === 'once') initOnceMode();
     else if (mode === 'monthly') initMonthlyMode();
     else if (mode === 'yearly') initYearlyMode();
+
+    updateDateButton();
 }
 
 // Clears the add/edit form back to a blank "create new event" state
@@ -1302,6 +1478,7 @@ function closeOnboarding() {
 document.addEventListener('DOMContentLoaded', () => {
     renderFaq();
     initTimePicker();
+    initDatePicker();
     initNotesFieldScrolling();
     initHoldToDelete();
     maybeShowOnboarding();
