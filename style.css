@@ -245,11 +245,10 @@ body.theme-light .splash-img {
    under everything; content may overlap it freely. */
 .main-logo-bg {
     position: absolute;
-    left: 0;
-    right: 0;
-    top: 58%;
-    transform: translateY(-50%);
-    width: 100%;
+    left: 50%;
+    top: 65%;
+    transform: translate(-50%, -50%);
+    width: 110%;
     opacity: 0.4;
     pointer-events: none;
     z-index: -1;
