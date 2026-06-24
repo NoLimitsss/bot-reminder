@@ -1124,6 +1124,58 @@ function initDatePicker() {
 
 
 /* ============================================================
+   9.6 HOUR PICKER (settings "send reminders at")
+   ============================================================
+   A single wheel that mirrors the hidden morning-hour <select>
+   (values 0..23, labels "HH:00"). No validation — just one column.
+   ============================================================ */
+function openHourPicker() {
+    const sel = document.getElementById('morning-hour-select');
+    const col = document.getElementById('hp-hours');
+    buildDateColumn(col, optionsFromSelect(sel));
+    document.getElementById('hour-picker-overlay').style.display = 'flex';
+    requestAnimationFrame(() => {
+        setDateColumn(col, sel.value);
+        highlightCentered(col);
+    });
+}
+
+function closeHourPicker(confirmed) {
+    if (confirmed) {
+        const sel = document.getElementById('morning-hour-select');
+        sel.value = dateColumnValue(document.getElementById('hp-hours'));
+        updateHourButton();
+    }
+    document.getElementById('hour-picker-overlay').style.display = 'none';
+}
+
+// Sets the hour button text from the current select value.
+function updateHourButton() {
+    const sel = document.getElementById('morning-hour-select');
+    const btn = document.getElementById('hour-btn');
+    if (!btn) return;
+    const opt = sel.options[sel.selectedIndex];
+    btn.innerText = opt ? opt.textContent : '08:00';
+}
+
+// Wires scroll highlighting + backdrop-tap-to-close (runs once at startup).
+function initHourPicker() {
+    const overlay = document.getElementById('hour-picker-overlay');
+    if (!overlay) return;
+    const col = document.getElementById('hp-hours');
+    let ticking = false;
+    col.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => { highlightCentered(col); ticking = false; });
+    });
+    overlay.addEventListener('click', e => {
+        if (e.target === overlay) closeHourPicker(false);
+    });
+}
+
+
+/* ============================================================
    10. DATE PICKER — MODE SWITCH (once / monthly / yearly)
    ============================================================ */
 function selectType(el, type) {
@@ -1542,6 +1594,7 @@ async function renderSettings() {
     });
 
     document.getElementById('morning-hour-select').value = String(s.morning_hour);
+    updateHourButton();
     document.getElementById('detailed-toggle').checked = !!s.detailed;
 }
 
@@ -1693,6 +1746,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderFaq();
     initTimePicker();
     initDatePicker();
+    initHourPicker();
     initDpTuner();
     initNotesFieldScrolling();
     initHoldToDelete();

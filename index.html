@@ -249,7 +249,9 @@
 
             <div class="setting-row">
                 <label class="setting-label">Отправлять напоминания в</label>
-                <select id="morning-hour-select" class="filter-select"></select>
+                <!-- Select stays as the hidden data model; the wheel button mirrors it -->
+                <select id="morning-hour-select" class="filter-select" style="display: none;"></select>
+                <div id="hour-btn" class="hour-btn" onclick="openHourPicker()">08:00</div>
             </div>
 
             <div class="importance-toggle-wrapper">
@@ -353,6 +355,24 @@
                 <div class="tp-column" id="dp-days"></div>
                 <div class="tp-column dp-month-col" id="dp-months"></div>
                 <div class="tp-column" id="dp-years"></div>
+                <div class="tp-selection-band"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================================
+         HOUR PICKER (settings: "send reminders at" — single wheel)
+         ============================================================ -->
+    <div id="hour-picker-overlay" class="time-picker-overlay" style="display: none;">
+        <div class="time-picker-sheet">
+            <div class="time-picker-header">
+                <button type="button" class="tp-cancel" onclick="closeHourPicker(false)">Отмена</button>
+                <span class="tp-title">Время</span>
+                <button type="button" class="tp-done" onclick="closeHourPicker(true)">Готово</button>
+            </div>
+            <div class="time-picker-wheels">
+                <div class="tp-column" id="hp-hours"></div>
                 <div class="tp-selection-band"></div>
             </div>
         </div>
