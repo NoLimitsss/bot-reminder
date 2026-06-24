@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Планировщик</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -11,6 +12,7 @@
          SPLASH SCREEN
          ============================================================ -->
     <div id="splash-screen">
+        <img src="logo.png" alt="" class="splash-img">
         <h1 class="splash-logo">Мой планировщик</h1>
     </div>
 
@@ -63,10 +65,11 @@
                placeholder="Название события (не более 50 символов)" maxlength="50">
 
         <!-- Event type: one-time / recurring monthly / recurring yearly -->
+        <label class="type-label">Выберите тип события:</label>
         <div class="type-selector-wrapper">
-            <div class="type-option" onclick="selectType(this, 'once')">Разовое</div>
-            <div class="type-option" onclick="selectType(this, 'monthly')">Цикл</div>
-            <div class="type-option" onclick="selectType(this, 'yearly')">Ежегод.</div>
+            <div class="type-option once" onclick="selectType(this, 'once')">Разовое</div>
+            <div class="type-option monthly" onclick="selectType(this, 'monthly')">Цикл</div>
+            <div class="type-option yearly" onclick="selectType(this, 'yearly')">Ежегод.</div>
         </div>
 
         <!-- Date picker: day / month / year (or "period" for monthly mode).

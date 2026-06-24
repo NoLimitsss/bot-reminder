@@ -60,10 +60,22 @@ body {
     height: 100vh;
     background-color: var(--tg-theme-bg-color, var(--bg));
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+    gap: 24px;
     z-index: 9999;
     transition: opacity 0.5s ease-out, visibility 0.5s;
+}
+
+/* Logo: static, sits above the title. White art -> inverted to dark on light theme */
+.splash-img {
+    width: 170px;
+    height: auto;
+}
+
+body.theme-light .splash-img {
+    filter: invert(1);
 }
 
 .splash-logo {
@@ -299,9 +311,13 @@ body {
 }
 
 .type-option.active {
-    background: var(--tg-theme-button-color);
-    color: var(--tg-theme-button-text-color);
+    color: #ffffff;
 }
+
+/* Active type tinted with that type's signature colour (matches event cards) */
+.type-option.once.active    { background: #8e8e93; }
+.type-option.monthly.active { background: #2ea6ff; }
+.type-option.yearly.active  { background: #34c759; }
 
 /* ---------- 6b. Date & time pickers ---------- */
 .custom-date-container {
@@ -758,8 +774,8 @@ body {
 }
 
 .tp-title {
-    font-weight: 600;
-    font-size: 16px;
+    font-weight: 700;
+    font-size: 19px;
     color: var(--tg-theme-text-color, var(--text));
 }
 
@@ -821,6 +837,11 @@ body {
     /* no scale transform — it caused the wheels to jitter sideways while scrolling */
 }
 
+/* Smaller wheel item (e.g. "Без года" — wouldn't fit at the default 22px) */
+.tp-item.tp-item-sm {
+    font-size: 14px;
+}
+
 .tp-colon {
     font-size: 22px;
     font-weight: 700;
@@ -850,14 +871,25 @@ body {
     font-size: 14px;
 }
 
-/* Date wheel picker: column headers + a wider column for month names */
+/* Date wheel picker: column headers aligned over their columns (same widths
+   and gap as the wheels row, so each label sits centered above its column). */
 .dp-labels {
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
+    gap: 6px;
     font-size: 13px;
     color: var(--tg-theme-hint-color, var(--hint));
     margin-bottom: 2px;
 }
+
+.dp-labels span {
+    text-align: center;
+}
+
+.dp-labels span:nth-child(1) { width: 72px; }    /* day column */
+.dp-labels span:nth-child(2) { width: 130px; }   /* month column */
+#dp-third-label { width: 72px; }                 /* year column */
+#dp-third-label.dp-period { width: 110px; }      /* period column (wider) */
 
 .dp-month-col {
     width: 130px;
@@ -865,6 +897,82 @@ body {
 
 .dp-month-col .tp-item {
     font-size: 18px;
+}
+
+/* "Период" column (monthly mode): wider + smaller so "11 месяцев" fits */
+.dp-period {
+    width: 110px;
+}
+
+.dp-period .tp-item {
+    font-size: 15px;
+}
+
+/* Label above the type selector + the per-mode label above the date button —
+   both share the same muted style. */
+.type-label,
+#date-picker-label {
+    display: block;
+    margin: 4px 0 6px;
+    font-size: 14px;
+    color: var(--tg-theme-hint-color, var(--hint));
+}
+
+/* Date button: greyed-out until a type is chosen, then a quick activation glow */
+.custom-date-btn.dp-disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none; /* stay inert (no shrink-on-tap) until a type is chosen */
+}
+
+.custom-date-btn.dp-activate {
+    animation: dp-glow 0.5s ease-out;
+}
+
+@keyframes dp-glow {
+    0%   { box-shadow: 0 0 0 0 var(--dp-glow, #3390ec); }
+    100% { box-shadow: 0 0 0 7px transparent; }
+}
+
+/* Day column: fades out/in when the number of days changes (Feb, etc.) */
+#dp-days, #dp-months {
+    transition: opacity 0.45s ease;
+}
+
+#dp-days.dp-fading, #dp-months.dp-fading {
+    opacity: 0;
+}
+
+/* Dev-only animation tuner panel (visible on localhost / Live Server) */
+#dp-tuner {
+    position: fixed;
+    right: 8px;
+    bottom: 8px;
+    z-index: 5000;
+    background: rgba(0, 0, 0, 0.82);
+    color: #fff;
+    font-size: 11px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+#dp-tuner label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#dp-tuner input[type="range"] {
+    width: 110px;
+}
+
+#dp-tuner span {
+    min-width: 28px;
+    text-align: right;
+    color: #6cf;
 }
 
 

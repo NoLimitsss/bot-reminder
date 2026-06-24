@@ -30,6 +30,9 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
+// Light theme: the white splash logo would vanish on a light background -> invert it
+if (tg.colorScheme === 'light') document.body.classList.add('theme-light');
+
 // Greeting for the header: adapts to the time of day and remembers the last
 // visit. Same day + same time-slot as the previous visit -> "С возвращением";
 // any other case (new day, new slot, first ever visit) -> a time-of-day
@@ -594,6 +597,7 @@ function editEvent() {
     } else {
         document.getElementById('year-select').value = currentEvent.year || '';
     }
+    setDateDisabled(false); // editing: a type is set, so the date is active
     updateDateButton();
 
     document.getElementById('real-time').value = currentEvent.time !== '—' ? currentEvent.time : '';
@@ -761,7 +765,7 @@ function buildDateColumn(columnEl, items) {
     columnEl.innerHTML = '<div class="tp-spacer"></div>';
     items.forEach((it, i) => {
         const el = document.createElement('div');
-        el.className = 'tp-item';
+        el.className = 'tp-item' + (it.cls ? ' ' + it.cls : '');
         el.textContent = it.label;
         el.addEventListener('click', () => {
             columnEl.scrollTo({ top: i * TP_ITEM_HEIGHT, behavior: 'smooth' });
@@ -783,32 +787,183 @@ function setDateColumn(columnEl, value) {
     setWheel(columnEl, idx >= 0 ? idx : 0);
 }
 
+// Month items for the wheel. In "once" mode, when the current year is selected
+// the past months of this year are dropped (you can't schedule into the past).
+function monthItemsForMode() {
+    let start = 1;
+    if (currentAddMode === 'once') {
+        const now = new Date();
+        const y = parseInt(dateColumnValue(document.getElementById('dp-years')), 10);
+        if (y === now.getFullYear()) start = now.getMonth() + 1;
+    }
+    const items = [];
+    for (let i = start; i <= 12; i++) {
+        items.push({ value: String(i).padStart(2, '0'), label: MONTHS_FULL[i - 1] });
+    }
+    return items;
+}
+
+// Rebuilds the month column (used when the year changes in "once" mode, which can
+// add/remove the past months). Keeps the chosen month if it's still available.
+// Rebuilds the month column. Fades (no glide) ONLY when the set of months
+// actually changes — i.e. moving between the current year (past months dropped)
+// and any other year (all 12). Switching between two non-current years is silent,
+// since every such year shows the same 12 months. `onDone` runs after it settles.
+function rebuildMonthWheel(onDone) {
+    const monthsCol = document.getElementById('dp-months');
+    const items = monthItemsForMode();
+    const sig = items[0].value; // first available month ('01', or curM for this year)
+
+    // Same month set already shown -> nothing changed, no fade
+    if (monthsCol._monthSig === sig) { if (onDone) onDone(); return; }
+
+    const prev = dateColumnValue(monthsCol);
+    const apply = () => {
+        buildDateColumn(monthsCol, items);
+        monthsCol._monthSig = sig;
+        let idx = monthsCol._values.indexOf(prev);
+        if (idx < 0) idx = 0; // chosen month now past -> first available (current month)
+        setWheel(monthsCol, idx);
+        highlightCentered(monthsCol);
+    };
+
+    // Month set changed -> fade out, rebuild hidden, fade in (no glide for months)
+    monthsCol.style.transitionDuration = DP_ANIM.fadeMs + 'ms';
+    monthsCol.classList.add('dp-fading');
+    setTimeout(() => {
+        apply();
+        monthsCol.classList.remove('dp-fading');
+        if (onDone) onDone();
+    }, DP_ANIM.pauseMs);
+}
+
+// Tunable animation params for the day-wheel reveal. The dev slider panel edits
+// these live; once you like the values, bake them in and drop the panel.
+const DP_ANIM = {
+    fadeMs: 450,     // opacity fade out/in duration
+    pauseMs: 470,    // wait after fade-out before rebuild (≈ fadeMs)
+    glideItems: 3,   // how many days above the target the reveal starts
+    glideMs: 400,    // duration of the glide scroll onto the target day
+};
+
+// Smoothly scrolls the day column from fromIdx to toIdx with an ease-out glide.
+// Scroll-snap is turned off during the glide (mandatory snap would kill it),
+// then restored and re-snapped onto the target.
+function glideDayWheel(daysCol, fromIdx, toIdx) {
+    daysCol.style.scrollSnapType = 'none';
+    const start = fromIdx * TP_ITEM_HEIGHT;
+    const dist = (toIdx * TP_ITEM_HEIGHT) - start;
+    const t0 = performance.now();
+
+    function step(now) {
+        const p = Math.min(1, (now - t0) / DP_ANIM.glideMs);
+        const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic (decelerates at the end)
+        daysCol.scrollTop = start + dist * eased;
+        highlightCentered(daysCol);
+        if (p < 1) {
+            requestAnimationFrame(step);
+        } else {
+            daysCol.style.scrollSnapType = '';
+            setWheel(daysCol, toIdx);
+            highlightCentered(daysCol);
+        }
+    }
+    requestAnimationFrame(step);
+}
+
 // Rebuilds the day column to match the month/year currently centered.
-function rebuildDayWheel() {
+// Does NOTHING when the exact same day set is already shown (no flicker on
+// same-length months). Fades + glides only when the day count actually changes.
+function rebuildDayWheel(animate = true) {
     const daysCol = document.getElementById('dp-days');
     const m = parseInt(dateColumnValue(document.getElementById('dp-months')), 10);
     if (!m) return;
+
+    const now = new Date();
+    const curY = now.getFullYear();
+    const curM = now.getMonth() + 1;
+    const curD = now.getDate();
+
     const yearVal = dateColumnValue(document.getElementById('dp-years'));
-    // monthly has no real year -> use a leap year so Feb 29 stays selectable
-    const y = (currentAddMode === 'monthly')
-        ? 2024
-        : (parseInt(yearVal, 10) || new Date().getFullYear());
+    // Recurring events (monthly/yearly) use a leap year so Feb 29 stays selectable;
+    // only "once" needs the real year (its February length must be exact).
+    const y = (currentAddMode === 'once') ? (parseInt(yearVal, 10) || curY) : 2024;
     const count = getDaysInMonth(y, m);
 
-    const prev = dateColumnValue(daysCol); // keep the day if it still fits
+    // Hard past-prevention for "once": in the current month+year days start at today
+    const startDay = (currentAddMode === 'once' && y === curY && m === curM) ? curD : 1;
+
+    // Same exact day set already shown -> do nothing (no rebuild, no flicker)
+    const sig = startDay + '_' + count;
+    if (daysCol._daySig === sig) return;
+
     const items = [];
-    for (let i = 1; i <= count; i++) {
+    for (let i = startDay; i <= count; i++) {
         items.push({ value: String(i).padStart(2, '0'), label: String(i) });
     }
-    buildDateColumn(daysCol, items);
-    requestAnimationFrame(() => {
-        setDateColumn(daysCol, prev);
+
+    const prev = dateColumnValue(daysCol);   // remember the chosen day
+    const prevCount = daysCol._dayCount;
+
+    // Rebuild items, return the index to land on (keep the day, else the last one)
+    const apply = () => {
+        buildDateColumn(daysCol, items);
+        daysCol._dayCount = items.length;
+        daysCol._daySig = sig;
+        let idx = daysCol._values.indexOf(prev);
+        if (idx < 0) idx = items.length - 1; // chosen day vanished -> last valid day
+        return idx;
+    };
+
+    // Silent rebuild: first build, no animation, or the day count didn't change
+    if (!animate || prevCount === undefined || prevCount === items.length) {
+        const idx = apply();
+        requestAnimationFrame(() => { setWheel(daysCol, idx); highlightCentered(daysCol); });
+        return;
+    }
+
+    // Count changed -> fade out, rebuild hidden, fade in + glide onto the new day
+    daysCol.style.transitionDuration = DP_ANIM.fadeMs + 'ms';
+    daysCol.classList.add('dp-fading');
+    setTimeout(() => {
+        const idx = apply();
+        const startIdx = Math.max(0, idx - DP_ANIM.glideItems);
+        setWheel(daysCol, startIdx);
         highlightCentered(daysCol);
+        daysCol.classList.remove('dp-fading');
+        requestAnimationFrame(() => glideDayWheel(daysCol, startIdx, idx));
+    }, DP_ANIM.pauseMs);
+}
+
+// Dev-only floating panel: sliders to tune the reveal animation live.
+function initDpTuner() {
+    if (!isDevEnvironment()) return; // only locally, never for real users
+    const panel = document.createElement('div');
+    panel.id = 'dp-tuner';
+    panel.innerHTML = `
+        <div><b>День-анимация</b></div>
+        <label>fade <input type="range" min="50" max="900" step="10" data-k="fadeMs"><span></span>мс</label>
+        <label>pause <input type="range" min="50" max="900" step="10" data-k="pauseMs"><span></span>мс</label>
+        <label>glide дни <input type="range" min="0" max="25" step="1" data-k="glideItems"><span></span></label>
+        <label>glide <input type="range" min="100" max="1400" step="20" data-k="glideMs"><span></span>мс</label>
+    `;
+    document.body.appendChild(panel);
+    panel.querySelectorAll('input').forEach(inp => {
+        inp.value = DP_ANIM[inp.dataset.k];
+        const upd = () => {
+            DP_ANIM[inp.dataset.k] = Number(inp.value);
+            inp.nextElementSibling.textContent = inp.value;
+        };
+        inp.addEventListener('input', upd);
+        upd();
     });
 }
 
 // Opens the date sheet, seeded from the current select values.
 function openDatePicker() {
+    const btn = document.getElementById('date-btn');
+    if (btn && btn.classList.contains('dp-disabled')) return; // type not chosen yet
+
     const daySel = document.getElementById('day-select');
     const monthSel = document.getElementById('month-select');
     const yearSel = document.getElementById('year-select');
@@ -817,23 +972,42 @@ function openDatePicker() {
     const monthsCol = document.getElementById('dp-months');
     const yearsCol = document.getElementById('dp-years');
 
-    // Month + third column mirror whatever the current mode set up
-    buildDateColumn(monthsCol, optionsFromSelect(monthSel));
-    buildDateColumn(yearsCol, optionsFromSelect(yearSel));
+    // Third column mirrors the select (years or, in monthly mode, periods).
+    // Yearly keeps the optional empty "Без года" option at the top.
+    const thirdItems = optionsFromSelect(yearSel);
+    if (currentAddMode === 'yearly') {
+        thirdItems.unshift({ value: '', label: 'Без года', cls: 'tp-item-sm' });
+    }
+    buildDateColumn(yearsCol, thirdItems);
 
-    // Third column means "period" in monthly mode, otherwise the year
-    document.getElementById('dp-third-label').innerText =
-        (currentAddMode === 'monthly') ? 'Период' : 'Год';
+    const isMonthly = currentAddMode === 'monthly';
+    const thirdLabel = document.getElementById('dp-third-label');
+    thirdLabel.innerText = isMonthly ? 'Период (раз в)' : 'Год';
+    thirdLabel.classList.toggle('dp-period', isMonthly); // match the wider period column
+    yearsCol.classList.toggle('dp-period', isMonthly);
+
+    // Seed: keep an existing choice, otherwise default to TODAY (so "once" opens
+    // on today's date and the past isn't offered).
+    const today = new Date();
+    const seedMonth = monthSel.value || String(today.getMonth() + 1).padStart(2, '0');
+    const seedThird = yearSel.value || (currentAddMode === 'once' ? String(today.getFullYear()) : '');
+    const seedDay = daySel.value || String(today.getDate()).padStart(2, '0');
 
     document.getElementById('date-picker-overlay').style.display = 'flex';
 
     requestAnimationFrame(() => {
-        setDateColumn(monthsCol, monthSel.value);
-        setDateColumn(yearsCol, yearSel.value);
-        highlightCentered(monthsCol);
+        // Year first — the month list can depend on it (once mode drops past months)
+        setDateColumn(yearsCol, seedThird);
         highlightCentered(yearsCol);
-        rebuildDayWheel(); // build days from the seeded month/year
-        requestAnimationFrame(() => setDateColumn(daysCol, daySel.value));
+        buildDateColumn(monthsCol, monthItemsForMode());
+        monthsCol._monthSig = monthsCol._values[0]; // baseline for the fade logic
+        setDateColumn(monthsCol, seedMonth);
+        highlightCentered(monthsCol);
+        rebuildDayWheel(false); // build days from the seeded month/year, no fade on open
+        requestAnimationFrame(() => {
+            setDateColumn(daysCol, seedDay);
+            highlightCentered(daysCol);
+        });
     });
 }
 
@@ -861,10 +1035,30 @@ function closeDatePicker(confirmed) {
     overlay.style.display = 'none';
 }
 
+// Greys out (no type chosen) or activates the date button with a quick glow.
+function setDateDisabled(disabled) {
+    const btn = document.getElementById('date-btn');
+    if (!btn) return;
+    if (disabled) {
+        btn.classList.add('dp-disabled');
+        btn.classList.remove('dp-activate');
+        btn.innerText = 'Выберите тип события';
+    } else {
+        btn.classList.remove('dp-disabled');
+        // Tint the activation glow with the chosen type's colour
+        const glow = { once: '#8e8e93', monthly: '#2ea6ff', yearly: '#34c759' }[currentAddMode];
+        btn.style.setProperty('--dp-glow', glow || '#3390ec');
+        btn.classList.remove('dp-activate');
+        void btn.offsetWidth; // reflow so the glow animation restarts
+        btn.classList.add('dp-activate');
+        updateDateButton();
+    }
+}
+
 // Updates the trigger button text from the current select values.
 function updateDateButton() {
     const btn = document.getElementById('date-btn');
-    if (!btn) return;
+    if (!btn || btn.classList.contains('dp-disabled')) return;
     const d = document.getElementById('day-select').value;
     const m = document.getElementById('month-select').value;
     const third = document.getElementById('year-select').value;
@@ -872,7 +1066,7 @@ function updateDateButton() {
     if (!d || !m) { btn.innerText = '📅 Выбрать дату'; return; }
 
     const monthName = MONTHS_FULL[parseInt(m, 10) - 1];
-    let text = `📅 ${parseInt(d, 10)} ${monthName}`;
+    let text = `📅 ${parseInt(d, 10)}, ${monthName}`;
     if (currentAddMode === 'monthly') {
         if (third) text += `, раз в ${third} мес.`;
     } else if (third) {
@@ -896,14 +1090,29 @@ function initDatePicker() {
         });
     });
 
-    // When month or year settles after scrolling, rebuild the day wheel
-    ['dp-months', 'dp-years'].forEach(id => {
-        const col = document.getElementById(id);
-        let settleTimer;
-        col.addEventListener('scroll', () => {
-            clearTimeout(settleTimer);
-            settleTimer = setTimeout(rebuildDayWheel, 160);
-        });
+    // When the month settles, rebuild the day wheel
+    const monthsCol = document.getElementById('dp-months');
+    let mSettle;
+    monthsCol.addEventListener('scroll', () => {
+        clearTimeout(mSettle);
+        mSettle = setTimeout(() => rebuildDayWheel(), 160);
+    });
+
+    // When the year settles, the available months can change (once mode drops past
+    // months of the current year) -> rebuild months first, then the day wheel
+    const yearsCol = document.getElementById('dp-years');
+    let ySettle;
+    yearsCol.addEventListener('scroll', () => {
+        clearTimeout(ySettle);
+        ySettle = setTimeout(() => {
+            // In once mode rebuild the month wheel first (it may fade), THEN the day
+            // wheel — the callback keeps them in the right order.
+            if (currentAddMode === 'once') {
+                rebuildMonthWheel(() => rebuildDayWheel());
+            } else {
+                rebuildDayWheel();
+            }
+        }, 160);
     });
 
     overlay.addEventListener('click', e => {
@@ -919,6 +1128,7 @@ function selectType(el, type) {
     document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('active'));
     el.classList.add('active');
     updatePickerMode(type);
+    setDateDisabled(false); // type chosen -> activate the date button (with glow)
 }
 
 function updatePickerMode(mode) {
@@ -940,10 +1150,11 @@ function resetAddForm() {
     document.getElementById('real-time').value = '';
     document.getElementById('time-btn').innerText = '⏰ Выбрать время';
 
+    // No type is pre-selected: the user must pick one, which then activates
+    // the date button (kept greyed-out until then).
     document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('active'));
-    const firstOption = document.querySelector('.type-option');
-    if (firstOption) firstOption.classList.add('active');
-    updatePickerMode('once');
+    currentAddMode = null;
+    setDateDisabled(true);
 }
 
 
@@ -1085,10 +1296,11 @@ function initMonthlyMode() {
         monthSelect.add(new Option(name, (i + 1).toString().padStart(2, '0')));
     });
 
-    // Repeat period: every 1–11 months
+    // Repeat period: every 1–11 months. Labels are short ("месяц", "2 месяца")
+    // because the wheel header already says "Период (раз в)".
     periodSelect.innerHTML = '<option value="">Период</option>';
     for (let i = 1; i <= 11; i++) {
-        const text = i === 1 ? 'Раз в 1 месяц' : `Раз в ${i} месяцев`;
+        const text = i === 1 ? 'месяц' : `${i} ${plural(i, 'месяц', 'месяца', 'месяцев')}`;
         periodSelect.add(new Option(text, i.toString()));
     }
 
@@ -1143,9 +1355,9 @@ function initYearlyMode() {
 
     // Year is OPTIONAL for yearly events — it's only informational (the recurrence
     // ignores it). Default "—". Range: 1920..current year.
-    yearSelect.innerHTML = '<option value="">—</option>';
+    yearSelect.innerHTML = '<option value="">Без года</option>';
     const curY = new Date().getFullYear();
-    for (let y = curY; y >= 1920; y--) yearSelect.add(new Option(y, y));
+    for (let y = curY; y >= 1930; y--) yearSelect.add(new Option(y, y));
     yearSelect.value = '';
 
     function validateDayMonth() {
@@ -1479,6 +1691,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderFaq();
     initTimePicker();
     initDatePicker();
+    initDpTuner();
     initNotesFieldScrolling();
     initHoldToDelete();
     maybeShowOnboarding();
