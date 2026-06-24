@@ -248,7 +248,7 @@ body.theme-light .splash-img {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 800%;
+    width: 80%;
     opacity: 0.4;
     pointer-events: none;
     z-index: -1;
