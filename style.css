@@ -339,10 +339,11 @@ body.theme-light .main-logo-bg {
 }
 
 .type-option.active {
+    background: var(--tg-theme-button-color); /* default highlight (e.g. settings mode buttons) */
     color: #ffffff;
 }
 
-/* Active type tinted with that type's signature colour (matches event cards) */
+/* Event-type buttons override the default with their signature colour (cards match) */
 .type-option.once.active    { background: #8e8e93; }
 .type-option.monthly.active { background: #2ea6ff; }
 .type-option.yearly.active  { background: #34c759; }
