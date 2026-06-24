@@ -64,12 +64,16 @@
         <input type="text" id="event-name" class="input-field"
                placeholder="Название события (не более 50 символов)" maxlength="50">
 
-        <!-- Event type: one-time / recurring monthly / recurring yearly -->
-        <label class="type-label">Выберите тип события:</label>
-        <div class="type-selector-wrapper">
-            <div class="type-option once" onclick="selectType(this, 'once')">Разовое</div>
-            <div class="type-option monthly" onclick="selectType(this, 'monthly')">Цикл</div>
-            <div class="type-option yearly" onclick="selectType(this, 'yearly')">Ежегод.</div>
+        <!-- Event type: one-time / recurring monthly / recurring yearly.
+             Label + buttons wrapped together so they sit close (like the date block),
+             instead of being split by the screen's flex gap. -->
+        <div class="type-block">
+            <label class="type-label">Выберите тип события:</label>
+            <div class="type-selector-wrapper">
+                <div class="type-option once" onclick="selectType(this, 'once')">Разовое</div>
+                <div class="type-option monthly" onclick="selectType(this, 'monthly')">Цикл</div>
+                <div class="type-option yearly" onclick="selectType(this, 'yearly')">Ежегод.</div>
+            </div>
         </div>
 
         <!-- Date picker: day / month / year (or "period" for monthly mode).

@@ -72,6 +72,7 @@ body {
 .splash-img {
     width: 170px;
     height: auto;
+    animation: splash-fade 2.0s ease-out forwards;
 }
 
 body.theme-light .splash-img {
@@ -89,6 +90,13 @@ body.theme-light .splash-img {
     0%   { opacity: 0; transform: translateY(20px); }
     50%  { opacity: 1; transform: translateY(0); }
     100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Logo: same fade timing as the title, but opacity only (no movement) */
+@keyframes splash-fade {
+    0%   { opacity: 0; }
+    50%  { opacity: 1; }
+    100% { opacity: 0; }
 }
 
 
@@ -294,7 +302,6 @@ body.theme-light .splash-img {
     padding: 4px;
     background: var(--tg-theme-secondary-bg-color, var(--secondary));
     border-radius: 12px;
-    margin-bottom: 20px;
     box-sizing: border-box;
 }
 
@@ -907,6 +914,11 @@ body.theme-light .splash-img {
 .dp-period .tp-item {
     font-size: 15px;
 }
+
+/* Monthly mode: widen the day column + its label to match the period column,
+   so the three columns stay symmetric and the month stays centered. */
+.dp-monthly #dp-days { width: 110px; }
+.dp-monthly .dp-labels span:nth-child(1) { width: 110px; }
 
 /* Label above the type selector + the per-mode label above the date button —
    both share the same muted style. */

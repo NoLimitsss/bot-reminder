@@ -985,6 +985,8 @@ function openDatePicker() {
     thirdLabel.innerText = isMonthly ? 'Период (раз в)' : 'Год';
     thirdLabel.classList.toggle('dp-period', isMonthly); // match the wider period column
     yearsCol.classList.toggle('dp-period', isMonthly);
+    // Keep the three columns symmetric in monthly mode (widens the day column)
+    document.getElementById('date-picker-overlay').classList.toggle('dp-monthly', isMonthly);
 
     // Seed: keep an existing choice, otherwise default to TODAY (so "once" opens
     // on today's date and the past isn't offered).
