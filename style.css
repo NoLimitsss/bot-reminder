@@ -246,7 +246,7 @@ body.theme-light .splash-img {
 .main-logo-bg {
     position: absolute;
     left: 50%;
-    top: 65%;
+    top: 80%;
     transform: translate(-50%, -50%);
     width: 100%;
     opacity: 0.4;
