@@ -167,6 +167,8 @@ body.theme-light .splash-img {
     gap: 24px;
     padding: 0;
     box-sizing: border-box;
+    position: relative; /* anchor for the faint background logo */
+    z-index: 0;         /* stacking context so the logo can sit behind content */
 }
 
 #main-screen h1 {
@@ -236,6 +238,25 @@ body.theme-light .splash-img {
     font-weight: 500;
     color: var(--tg-theme-text-color, var(--text));
     letter-spacing: 0.3px;
+}
+
+/* EXPERIMENT: faint full-width logo as a BACKGROUND behind all main-screen
+   content (remove with its <img> if dropped). Absolute + z-index: -1 keeps it
+   under everything; content may overlap it freely. */
+.main-logo-bg {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 58%;
+    transform: translateY(-50%);
+    width: 100%;
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: -1;
+}
+
+body.theme-light .main-logo-bg {
+    filter: invert(1);
 }
 
 /* Footer, pinned to bottom */
