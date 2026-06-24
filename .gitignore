@@ -1,0 +1,20 @@
+backup/backup describtion.txt
+backup/faq-data.js
+backup/index.html
+backup/index_files/script.js.Без названия
+backup/index_files/style.css
+backup/index_files/telegram-web-app.js.Без названия
+backup/script.js
+backup/style.css
+
+# Backend secrets & artifacts
+backend/.env
+backend/*.db
+backend/__pycache__/
+**/__pycache__/
+*.pyc
+/backend
+ava photoshop project/avatar.psd
+avatar.png
+PROJECT.md
+test.js

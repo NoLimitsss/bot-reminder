@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Планировщик</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -11,6 +12,7 @@
          SPLASH SCREEN
          ============================================================ -->
     <div id="splash-screen">
+        <img src="logo.png" alt="" class="splash-img">
         <h1 class="splash-logo">Мой планировщик</h1>
     </div>
 
@@ -63,20 +65,25 @@
                placeholder="Название события (не более 50 символов)" maxlength="50">
 
         <!-- Event type: one-time / recurring monthly / recurring yearly -->
+        <label class="type-label">Выберите тип события:</label>
         <div class="type-selector-wrapper">
-            <div class="type-option" onclick="selectType(this, 'once')">Разовое</div>
-            <div class="type-option" onclick="selectType(this, 'monthly')">Цикл</div>
-            <div class="type-option" onclick="selectType(this, 'yearly')">Ежегод.</div>
+            <div class="type-option once" onclick="selectType(this, 'once')">Разовое</div>
+            <div class="type-option monthly" onclick="selectType(this, 'monthly')">Цикл</div>
+            <div class="type-option yearly" onclick="selectType(this, 'yearly')">Ежегод.</div>
         </div>
 
-        <!-- Date picker: day / month / year (or "period" for monthly mode) -->
+        <!-- Date picker: day / month / year (or "period" for monthly mode).
+             The three <select>s stay as the hidden data model — the mode
+             functions still populate them and validation runs on them. The
+             wheel sheet below mirrors them and writes the chosen values back. -->
         <div class="date-picker-wrapper">
             <label id="date-picker-label">Дата события:</label>
-            <div class="custom-date-container">
+            <div class="custom-date-container" style="display: none;">
                 <select id="day-select" class="custom-select"></select>
                 <select id="month-select" class="custom-select"></select>
                 <select id="year-select" class="custom-select"></select>
             </div>
+            <div id="date-btn" class="custom-date-btn" onclick="openDatePicker()">📅 Выбрать дату</div>
         </div>
 
         <!-- Time picker (native <input type="time"> hidden behind a styled button) -->
@@ -317,6 +324,31 @@
                 <div class="tp-selection-band"></div>
             </div>
             <button type="button" class="tp-clear" onclick="clearTime()">Сбросить время</button>
+        </div>
+    </div>
+
+
+    <!-- ============================================================
+         DATE PICKER (custom scroll-wheel: day / month / year)
+         ============================================================ -->
+    <div id="date-picker-overlay" class="time-picker-overlay" style="display: none;">
+        <div class="time-picker-sheet">
+            <div class="time-picker-header">
+                <button type="button" class="tp-cancel" onclick="closeDatePicker(false)">Отмена</button>
+                <span class="tp-title">Дата</span>
+                <button type="button" class="tp-done" onclick="closeDatePicker(true)">Готово</button>
+            </div>
+            <div class="dp-labels">
+                <span>День</span>
+                <span>Месяц</span>
+                <span id="dp-third-label">Год</span>
+            </div>
+            <div class="time-picker-wheels">
+                <div class="tp-column" id="dp-days"></div>
+                <div class="tp-column dp-month-col" id="dp-months"></div>
+                <div class="tp-column" id="dp-years"></div>
+                <div class="tp-selection-band"></div>
+            </div>
         </div>
     </div>
 
