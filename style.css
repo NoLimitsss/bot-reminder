@@ -169,6 +169,7 @@ body.theme-light .splash-img {
     box-sizing: border-box;
     position: relative; /* anchor for the faint background logo */
     z-index: 0;         /* stacking context so the logo can sit behind content */
+    overflow: hidden;   /* clip the background logo so it never adds a scrollbar */
 }
 
 #main-screen h1 {
